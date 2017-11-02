@@ -1,37 +1,35 @@
 class Scroller {
-	constructor(scrollTarget, animateTargets, activeMediaQuery, animations) {
-		defaultAnimation = {
+	constructor(scrollTarget, animateTargets, activeMediaQuery, animations, scrollIsVertical = true) {
+		var defaultAnimation = {
 			properties: ['transform', 'msTransform'],
 			separator: ', ',
-			scrollIsVertical: true,
-			valueSets = [
+			valueSets: [
 				{
 					unit: 'vh',
 					valueFormat: 'translateY(%s)',
-					startValue: 15;
-					endValue: 40,
+					startValue: 15,
+					endValue: 40
 				}
 			]
 		};
 
 		if(typeof animations === 'undefined') {
 			animations = [];
-		};
+		}
 
 		if(animations.length === 0) {
-			animations.push(defaultAnimations);
+			animations.push(defaultAnimation);
 		} else {
 			for( var i = 0; i < animations.length; i++) {
-				animations[i] = Object.assign(animations[i], defaultAnimation);
+				animations[i] = Object.assign({}, defaultAnimation, animations[i]);
 			}
-			animations.forEach(function(animation) {
-				Object.assign()
-			});
 		}
 
 		this.animations = animations;
+		this.scrollIsVertical = scrollIsVertical;
 		this.activated = false;
 		this.isTouch = 'ontouchstart' in document.documentElement;
+
 
 		var mql = window.matchMedia('(min-width: 720px)')
 
@@ -42,14 +40,14 @@ class Scroller {
 		});
 	}
 
-	relativeScrollPosition(animation) {
+	relativeScrollPosition() {
 		var offset, size, windowSize, scrollPos;
 
 		var rect = this.scrollTarget.getBoundingClientRect();
 
-		if(animation.scrollIsVertical) {
+		if(this.scrollIsVertical) {
 			offset = rect.top + document.body.scrollTop;
-			size = thisscrollTarget.offsetHeight;
+			size = this.scrollTarget.offsetHeight;
 			windowSize = window.innerHeight;
 			scrollPos = window.pageYOffset;
 		} else {
@@ -64,8 +62,8 @@ class Scroller {
 		return (scrollPos - zeroPoint) / (completePoint - zeroPoint);
 	}
 
-	clampedRelativeScrollPosition(animation) {
-		return Math.min(Math.max(this.relativeScrollPosition(animation), 0), 1);
+	clampedRelativeScrollPosition() {
+		return Math.min(Math.max(this.relativeScrollPosition(), 0), 1);
 	}
 
 	updateAnimation(animation) {
@@ -73,11 +71,7 @@ class Scroller {
 		var cssValues = [];
 		animation.valueSets.forEach(function (valueSet) {
 			cssValues.push(
-				sprintf(
-					'%f%s',
-					(valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue,
-					valueSet.unit
-				)
+				((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString + valueSet.unit
 			);
 		});
 
@@ -94,7 +88,7 @@ class Scroller {
 			target.classList.add('scroll-animated');
 			this.updateAnimation(animation)
 
-			animation.listeners.push(function(e) {
+			animation.listeners.push(function() {
 				this.updateAnimation(animation);
 			});
 
