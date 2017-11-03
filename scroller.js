@@ -1,42 +1,71 @@
-class Scroller {
-	constructor(scrollTarget, animateTargets, activeMediaQuery, animations, scrollIsVertical = true) {
-		var defaultAnimation = {
+class ScrollerAnimationValueSet {
+	constructor(options) {
+		var defaultOptions = {
+			unit: 'vh',
+			valueFormat: 'translateY(_)',
+			substitutionString: '_',
+			startValue: 20,
+			endValue: -20
+		}
+
+		this.options = Object.assign({}, defaultOptions, options);
+	}
+}
+
+class ScrollerAnimation {
+	constructor(animateTargets, options, valueSets) {
+		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
-			separator: ', ',
-			valueSets: [
-				{
-					unit: 'vh',
-					valueFormat: 'translateY(%s)',
-					startValue: 15,
-					endValue: 40
-				}
-			]
+			valueSetSeparator: ', '
+		}
+
+		if(typeof valueSets === 'undefined' || !valueSets.length) {
+			valueSets = [ new ScrollerAnimationValueSet ];
+		}
+
+		this.options = Object.assign({}, defaultOptions, options);
+		this.valueSets = valueSets;
+		this.animateTargets = animateTargets;
+		this.listeners = [];
+	}
+
+	updateCSS(scrollPosition) {
+		var cssValues = [];
+
+		this.valueSets.forEach(function (valueSet) {
+			cssValues.push(
+				((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit
+			);
+		});
+
+		this.animateTargets.forEach(function(animateTarget) {
+			this.options.properties.forEach(function(animateProperty) {
+				animateTarget.style[animateProperty] = cssValues.join(this.options.valueSetSeparator);
+			}, this);
+		}, this);
+	}
+}
+
+class Scroller {
+	constructor(scrollTarget, options, animations) {
+		var defaultOptions = {
+			scrollIsVertical: true,
+			activeMediaQueryList: window.matchMedia('(min-width: 720px)')
 		};
 
 		if(typeof animations === 'undefined') {
 			animations = [];
 		}
 
-		if(animations.length === 0) {
-			animations.push(defaultAnimation);
-		} else {
-			for( var i = 0; i < animations.length; i++) {
-				animations[i] = Object.assign({}, defaultAnimation, animations[i]);
-			}
-		}
-
+		this.scrollTarget = scrollTarget;
 		this.animations = animations;
-		this.scrollIsVertical = scrollIsVertical;
+		this.options = Object.assign({}, defaultOptions, options);
 		this.activated = false;
-		this.isTouch = 'ontouchstart' in document.documentElement;
 
+		this.respond();
 
-		var mql = window.matchMedia('(min-width: 720px)')
-
-		this.respond(mql.matches);
-
-		mql.addListener(function(e) {
-			this.respond(e.matches)
+		this.options.activeMediaQueryList.addEventListener('change', function() {
+			this.respond()
 		});
 	}
 
@@ -45,7 +74,7 @@ class Scroller {
 
 		var rect = this.scrollTarget.getBoundingClientRect();
 
-		if(this.scrollIsVertical) {
+		if(this.options.scrollIsVertical) {
 			offset = rect.top + document.body.scrollTop;
 			size = this.scrollTarget.offsetHeight;
 			windowSize = window.innerHeight;
@@ -63,45 +92,30 @@ class Scroller {
 	}
 
 	clampedRelativeScrollPosition() {
+		console.log(Math.min(Math.max(this.relativeScrollPosition(), 0), 1));
 		return Math.min(Math.max(this.relativeScrollPosition(), 0), 1);
 	}
 
-	updateAnimation(animation) {
-		var scrollPosition = clampedRelativeScrollPosition(animation);
-		var cssValues = [];
-		animation.valueSets.forEach(function (valueSet) {
-			cssValues.push(
-				((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString + valueSet.unit
-			);
-		});
+	setUpAnimations() {
+		this.animations.forEach(function(animation) {
+			animation.animateTargets.forEach(function(animateTarget) {
+				animateTarget.classList.add('scroll-animated');
+				animation.updateCSS(this.clampedRelativeScrollPosition())
 
-		this.animateTargets.forEach(function(target) {
-			animation.properties.forEach(function(animateProperty) {
-				target.style[animateProperty] = cssValues.join(animation.separator);
-			});
-		});
-	}
+				animation.listeners.push(function() {
+					animation.updateCSS(this.clampedRelativeScrollPosition());
+				});
 
-	scrollAnimate(animation) {
-		animation.listeners = [];
-		this.animateTargets.forEach(function(target) {
-			target.classList.add('scroll-animated');
-			this.updateAnimation(animation)
-
-			animation.listeners.push(function() {
-				this.updateAnimation(animation);
-			});
-
-			window.addEventListener('scroll', animation.listeners[animation.listeners.length - 1]); // FIXME: Throttle scroll to requestAnimationFrame
-		});
+				window.addEventListener('scroll', animation.listeners[animation.listeners.length - 1]); // // FIXME: Throttle scroll to requestAnimationFrame
+			}, this);
+		}, this);
 	}
 
 	activate() {
-		this.animations.forEach(function(animation) {
-			scrollAnimate(animation);
-		});
-
-		this.activated = true;
+		if(!this.activated) {
+			this.setUpAnimations();
+			this.activated = true;
+		}
 	}
 
 	deactivate() {
@@ -116,8 +130,8 @@ class Scroller {
 		}
 	}
 
-	respond(queryDoesMatch) {
-		if(queryDoesMatch) {
+	respond() {
+		if(this.options.activeMediaQueryList.matches) {
 			this.activate();
 		} else {
 			this.deactivate();
