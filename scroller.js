@@ -6,9 +6,13 @@ class ScrollerAnimationValueSet {
 			substitutionString: '_',
 			startValue: 20,
 			endValue: -20
-		}
+		};
 
-		this.options = Object.assign({}, defaultOptions, options);
+		options = Object.assign({}, defaultOptions, options);
+
+		Object.getOwnPropertyNames(options).forEach(name => {
+			this[name] = options[name];
+		});
 	}
 }
 
@@ -33,8 +37,9 @@ class ScrollerAnimation {
 		var cssValues = [];
 
 		this.valueSets.forEach(function (valueSet) {
+			console.log(valueSet);
 			cssValues.push(
-				((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit
+				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit)
 			);
 		});
 
@@ -75,13 +80,13 @@ class Scroller {
 		var rect = this.scrollTarget.getBoundingClientRect();
 
 		if(this.options.scrollIsVertical) {
-			offset = rect.top + document.body.scrollTop;
-			size = this.scrollTarget.offsetHeight;
+			offset = rect.top + document.documentElement.scrollTop;
+			size = rect.height;
 			windowSize = window.innerHeight;
 			scrollPos = window.pageYOffset;
 		} else {
-			offset = rect.left + document.body.scrollLeft;
-			size = this.scrollTarget.offsetWidth;
+			offset = rect.left + document.documentElement.scrollLeft;
+			size = rect.width;
 			windowSize = window.innerWidth;
 			scrollPos = window.pageXOffset;
 		}
@@ -97,18 +102,18 @@ class Scroller {
 	}
 
 	setUpAnimations() {
-		this.animations.forEach(function(animation) {
-			animation.animateTargets.forEach(function(animateTarget) {
+		this.animations.forEach(animation => {
+			animation.animateTargets.forEach(animateTarget => {
 				animateTarget.classList.add('scroll-animated');
 				animation.updateCSS(this.clampedRelativeScrollPosition())
 
-				animation.listeners.push(function() {
+				animation.listeners.push(() => {
 					animation.updateCSS(this.clampedRelativeScrollPosition());
 				});
 
 				window.addEventListener('scroll', animation.listeners[animation.listeners.length - 1]); // // FIXME: Throttle scroll to requestAnimationFrame
-			}, this);
-		}, this);
+			});
+		});
 	}
 
 	activate() {
