@@ -106,23 +106,41 @@ class Scroller {
 
 		this.respond();
 
-		this.options.activeMediaQueryList.addEventListener('change', () => {
-			this.respond()
+		this.options.activeMediaQueryList.addListener(() => {
+			this.respond();
 		});
 	}
 
 	relativeScrollPosition() {
-		var offset, size, windowSize, scrollPos;
+		var offset, size, windowSize, scrollPos, scroll;
 
 		var rect = this.scrollTarget.getBoundingClientRect();
 
 		if(this.options.scrollIsVertical) {
-			offset = rect.top + document.documentElement.scrollTop;
+			if('scrollY' in window) {
+				scroll = window.scrollY;
+			} else if ('pageYOffset' in window) {
+				scroll = window.pageYOffset;
+			} else if (document.documentElement.scrollTop > 0) {
+				scroll = document.documentElement.scrollTop;
+			} else {
+				scroll = document.body.scrollTop;
+			}
+			offset = rect.top + scroll;
 			size = rect.height;
 			windowSize = window.innerHeight;
 			scrollPos = window.pageYOffset;
 		} else {
-			offset = rect.left + document.documentElement.scrollLeft;
+			if('scrollX' in window) {
+				scroll = window.scrollX;
+			} else if ('pageXOffset' in window) {
+				scroll = window.pageXOffset;
+			} else if (document.documentElement.scrollLeft > 0) {
+				scroll = document.documentElement.scrollLeft;
+			} else {
+				scroll = document.body.scrollLeft;
+			}
+			offset = rect.left + scroll;
 			size = rect.width;
 			windowSize = window.innerWidth;
 			scrollPos = window.pageXOffset;
@@ -134,6 +152,7 @@ class Scroller {
 	}
 
 	clampedRelativeScrollPosition() {
+		console.log(Math.min(Math.max(this.relativeScrollPosition(), 0), 1));
 		return Math.min(Math.max(this.relativeScrollPosition(), 0), 1);
 	}
 
