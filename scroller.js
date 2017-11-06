@@ -5,7 +5,8 @@ class ScrollerAnimationValueSet {
 			valueFormat: 'translateY(_)',
 			substitutionString: '_',
 			startValue: 20,
-			endValue: -20
+			endValue: -20,
+			resetValue: 0
 		};
 
 		options = Object.assign({}, defaultOptions, options);
@@ -20,8 +21,9 @@ class ScrollerAnimation {
 	constructor(animateTargets, options, valueSets) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
-			valueSetSeparator: ', '
-		}
+			valueSetSeparator: ', ',
+			removePropertyOnReset: true
+		};
 
 		if(typeof valueSets === 'undefined' || !valueSets.length) {
 			valueSets = [ new ScrollerAnimationValueSet ];
@@ -31,23 +33,58 @@ class ScrollerAnimation {
 		this.valueSets = valueSets;
 		this.animateTargets = animateTargets;
 		this.listeners = [];
+		this.ticking = false;
+		this.scrollPosition = 0.5;
 	}
 
-	updateCSS(scrollPosition) {
+	setCSS(cssValues) {
+		this.animateTargets.forEach((animateTarget) => {
+			this.options.properties.forEach((animateProperty) => {
+				animateTarget.style[animateProperty] = cssValues.join(this.options.valueSetSeparator);
+			});
+		});
+	}
+
+	updateCSS() {
 		var cssValues = [];
 
-		this.valueSets.forEach(function (valueSet) {
-			console.log(valueSet);
+		this.valueSets.forEach((valueSet) => {
 			cssValues.push(
-				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit)
+				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * this.scrollPosition + valueSet.startValue).toString() + valueSet.unit)
 			);
 		});
 
-		this.animateTargets.forEach(function(animateTarget) {
-			this.options.properties.forEach(function(animateProperty) {
-				animateTarget.style[animateProperty] = cssValues.join(this.options.valueSetSeparator);
-			}, this);
-		}, this);
+		this.setCSS(cssValues);
+		this.ticking = false;
+	}
+
+	requestUpdate(scrollPosition) {
+		if(!this.ticking) {
+			this.scrollPosition = scrollPosition;
+			requestAnimationFrame(() => { this.updateCSS() });
+		}
+
+		this.ticking = true;
+	}
+
+	reset() {
+		if(this.removePropertyOnReset) {
+			this.animateTargets.forEach((animateTarget) => {
+				this.options.properties.forEach((property) => {
+					animateTarget.style.removeProperty(property)
+				});
+			});
+		} else {
+			var cssValues = [];
+
+			this.valueSets.forEach((valueSet) => {
+				cssValues.push(
+					valueSet.valueFormat.replace(valueSet.substitutionString, valueSet.resetValue.toString() + valueSet.unit)
+				);
+			});
+
+			this.setCSS(cssValues);
+		}
 	}
 }
 
@@ -69,7 +106,7 @@ class Scroller {
 
 		this.respond();
 
-		this.options.activeMediaQueryList.addEventListener('change', function() {
+		this.options.activeMediaQueryList.addEventListener('change', () => {
 			this.respond()
 		});
 	}
@@ -97,7 +134,6 @@ class Scroller {
 	}
 
 	clampedRelativeScrollPosition() {
-		console.log(Math.min(Math.max(this.relativeScrollPosition(), 0), 1));
 		return Math.min(Math.max(this.relativeScrollPosition(), 0), 1);
 	}
 
@@ -108,7 +144,10 @@ class Scroller {
 				animation.updateCSS(this.clampedRelativeScrollPosition())
 
 				animation.listeners.push(() => {
-					animation.updateCSS(this.clampedRelativeScrollPosition());
+					var relativeScrollPosition = this.relativeScrollPosition();
+					if(relativeScrollPosition > -0.2 || relativeScrollPosition < 1.2) {
+						animation.requestUpdate(this.clampedRelativeScrollPosition());
+					}
 				});
 
 				window.addEventListener('scroll', animation.listeners[animation.listeners.length - 1]); // // FIXME: Throttle scroll to requestAnimationFrame
@@ -125,10 +164,12 @@ class Scroller {
 
 	deactivate() {
 		if(this.activated) {
-			this.animations.forEach(function(animation) {
-				animation.listeners.forEach(function(listener) {
+			this.animations.forEach((animation) => {
+				animation.listeners.forEach((listener) => {
 					window.removeEventListener('scroll', listener);
 				});
+
+				animation.reset();
 			});
 
 			this.activated = false;
