@@ -151,9 +151,12 @@ class Scroller {
 		return (scrollPos - zeroPoint) / (completePoint - zeroPoint);
 	}
 
-	clampedRelativeScrollPosition() {
-		console.log(Math.min(Math.max(this.relativeScrollPosition(), 0), 1));
-		return Math.min(Math.max(this.relativeScrollPosition(), 0), 1);
+	clampedRelativeScrollPosition(relativeScrollPosition) {
+		if(typeof relativeScrollPosition === 'undefined') {
+			relativeScrollPosition = this.relativeScrollPosition();
+		}
+
+		return Math.min(Math.max(relativeScrollPosition, 0), 1);
 	}
 
 	setUpAnimations() {
@@ -164,8 +167,8 @@ class Scroller {
 
 				animation.listeners.push(() => {
 					var relativeScrollPosition = this.relativeScrollPosition();
-					if(relativeScrollPosition > -0.2 || relativeScrollPosition < 1.2) {
-						animation.requestUpdate(this.clampedRelativeScrollPosition());
+					if(relativeScrollPosition > -0.1 || relativeScrollPosition < 1.1) {
+						animation.requestUpdate(this.clampedRelativeScrollPosition(relativeScrollPosition));
 					}
 				});
 
