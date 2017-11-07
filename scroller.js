@@ -1,4 +1,4 @@
-class ScrollerAnimationValueSet {
+class ScrollAnimationValueSet {
 	constructor(options) {
 		var defaultOptions = {
 			unit: 'vh',
@@ -17,30 +17,57 @@ class ScrollerAnimationValueSet {
 	}
 }
 
-class ScrollerAnimation {
-	constructor(animateTargets, options, valueSets) {
+class ScrollAnimation {
+	constructor(animateTargets, scrollDetector, options, valueSets, initImmediately = true) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
 			valueSetSeparator: ', ',
-			removePropertyOnReset: true
+			removePropertyOnReset: true,
+			activeMediaQueryList: window.matchMedia('(min-width: 720px)')
 		};
 
+		options = Object.assign({}, defaultOptions, options);
+
+		Object.getOwnPropertyNames(options).forEach(name => {
+			this[name] = options[name];
+		});
+
 		if(typeof valueSets === 'undefined' || !valueSets.length) {
-			valueSets = [ new ScrollerAnimationValueSet ];
+			valueSets = [ new ScrollAnimationValueSet ];
 		}
 
-		this.options = Object.assign({}, defaultOptions, options);
-		this.valueSets = valueSets;
 		this.animateTargets = animateTargets;
+		this.scrollDetector = scrollDetector;
+		this.valueSets = valueSets;
 		this.listeners = [];
 		this.ticking = false;
-		this.scrollPosition = 0.5;
+		this.activated = false;
+
+		if(initImmediately) {
+			this.init();
+		}
+	}
+
+	init() {
+		this.animateTargets.forEach(animateTarget => {
+			animateTarget.classList.add('scroll-animated');
+			this.updateCSS();
+
+			this.listeners.push(() => {
+				var relativeScrollPosition = this.scrollDetector.relativeScrollPosition();
+				if(relativeScrollPosition > -0.1 || relativeScrollPosition < 1.1) {
+					this.requestUpdate();
+				}
+			});
+
+			window.addEventListener('scroll', this.listeners[this.listeners.length - 1]);
+		});
 	}
 
 	setCSS(cssValues) {
 		this.animateTargets.forEach((animateTarget) => {
-			this.options.properties.forEach((animateProperty) => {
-				animateTarget.style[animateProperty] = cssValues.join(this.options.valueSetSeparator);
+			this.properties.forEach((animateProperty) => {
+				animateTarget.style[animateProperty] = cssValues.join(this.valueSetSeparator);
 			});
 		});
 	}
@@ -48,9 +75,11 @@ class ScrollerAnimation {
 	updateCSS() {
 		var cssValues = [];
 
+		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
+
 		this.valueSets.forEach((valueSet) => {
 			cssValues.push(
-				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * this.scrollPosition + valueSet.startValue).toString() + valueSet.unit)
+				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit)
 			);
 		});
 
@@ -58,9 +87,8 @@ class ScrollerAnimation {
 		this.ticking = false;
 	}
 
-	requestUpdate(scrollPosition) {
+	requestUpdate() {
 		if(!this.ticking) {
-			this.scrollPosition = scrollPosition;
 			requestAnimationFrame(() => { this.updateCSS() });
 		}
 
@@ -70,12 +98,11 @@ class ScrollerAnimation {
 	reset() {
 		if(this.removePropertyOnReset) {
 			this.animateTargets.forEach((animateTarget) => {
-				this.options.properties.forEach((property) => {
+				this.properties.forEach((property) => {
 					animateTarget.style.removeProperty(property)
 				});
 			});
-		} else {
-			var cssValues = [];
+		} else {			var cssValues = [];
 
 			this.valueSets.forEach((valueSet) => {
 				cssValues.push(
@@ -86,28 +113,44 @@ class ScrollerAnimation {
 			this.setCSS(cssValues);
 		}
 	}
-}
 
-class Scroller {
-	constructor(scrollTarget, options, animations) {
-		var defaultOptions = {
-			scrollIsVertical: true,
-			activeMediaQueryList: window.matchMedia('(min-width: 720px)')
-		};
+	activate() {
+		if(!this.activated) {
+			this.init();
+			this.activated = true;
+		}
+	}
 
-		if(typeof animations === 'undefined') {
-			animations = [];
+	deactivate() {
+		if(this.activated) {
+			window.removeEventListener('scroll', this.listener);
 		}
 
-		this.scrollTarget = scrollTarget;
-		this.animations = animations;
-		this.options = Object.assign({}, defaultOptions, options);
+		this.reset();
 		this.activated = false;
+	}
 
-		this.respond();
+	respond() {
+		if(this.activeMediaQueryList.matches) {
+			this.activate();
+		} else {
+			this.deactivate();
+		}
+	}
+}
 
-		this.options.activeMediaQueryList.addListener(() => {
-			this.respond();
+class ScrollDetector {
+	constructor(scrollTarget, options) {
+		var defaultOptions = {
+			scrollIsVertical: true
+		};
+
+		this.scrollTarget = scrollTarget;
+
+		options = Object.assign({}, defaultOptions, options);
+
+		Object.getOwnPropertyNames(options).forEach(name => {
+			this[name] = options[name];
 		});
 	}
 
@@ -116,7 +159,7 @@ class Scroller {
 
 		var rect = this.scrollTarget.getBoundingClientRect();
 
-		if(this.options.scrollIsVertical) {
+		if(this.scrollIsVertical) {
 			if('scrollY' in window) {
 				scroll = window.scrollY;
 			} else if ('pageYOffset' in window) {
@@ -151,58 +194,7 @@ class Scroller {
 		return (scrollPos - zeroPoint) / (completePoint - zeroPoint);
 	}
 
-	clampedRelativeScrollPosition(relativeScrollPosition) {
-		if(typeof relativeScrollPosition === 'undefined') {
-			relativeScrollPosition = this.relativeScrollPosition();
-		}
-
+	clampedRelativeScrollPosition(relativeScrollPosition = this.relativeScrollPosition()) {
 		return Math.min(Math.max(relativeScrollPosition, 0), 1);
-	}
-
-	setUpAnimations() {
-		this.animations.forEach(animation => {
-			animation.animateTargets.forEach(animateTarget => {
-				animateTarget.classList.add('scroll-animated');
-				animation.updateCSS(this.clampedRelativeScrollPosition())
-
-				animation.listeners.push(() => {
-					var relativeScrollPosition = this.relativeScrollPosition();
-					if(relativeScrollPosition > -0.1 || relativeScrollPosition < 1.1) {
-						animation.requestUpdate(this.clampedRelativeScrollPosition(relativeScrollPosition));
-					}
-				});
-
-				window.addEventListener('scroll', animation.listeners[animation.listeners.length - 1]); // // FIXME: Throttle scroll to requestAnimationFrame
-			});
-		});
-	}
-
-	activate() {
-		if(!this.activated) {
-			this.setUpAnimations();
-			this.activated = true;
-		}
-	}
-
-	deactivate() {
-		if(this.activated) {
-			this.animations.forEach((animation) => {
-				animation.listeners.forEach((listener) => {
-					window.removeEventListener('scroll', listener);
-				});
-
-				animation.reset();
-			});
-
-			this.activated = false;
-		}
-	}
-
-	respond() {
-		if(this.options.activeMediaQueryList.matches) {
-			this.activate();
-		} else {
-			this.deactivate();
-		}
 	}
 }

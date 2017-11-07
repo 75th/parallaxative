@@ -1,3 +1,5 @@
-class Parallaxative extends Scroller {
-
+class ParallaxativeAnimation extends ScrollAnimation {
+	constructor() {
+		super();
+	}
 }

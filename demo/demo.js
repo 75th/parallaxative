@@ -1,10 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-	window.scrollers = [];
-	window.scrollers.push(
-		new Scroller(
-			document.querySelector('div.target'),
-			{},
-			[new ScrollerAnimation([document.querySelector('.target h1')])]
+	window.scrollAnimations = [];
+	window.scrollDetectors = [];
+
+	window.scrollDetectors.push( new ScrollDetector(document.querySelector('div.target')) );
+
+	window.scrollAnimations.push(
+		new ScrollAnimation(
+			[document.querySelector('div.target h1')],
+			window.scrollDetectors[0]
 		)
 	);
 });
