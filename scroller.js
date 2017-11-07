@@ -18,12 +18,13 @@ class ScrollAnimationValueSet {
 }
 
 class ScrollAnimation {
-	constructor(animateTargets, scrollDetector, options, valueSets, initImmediately = true) {
+	constructor(animateTargets, scrollDetector, options, valueSets) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
 			valueSetSeparator: ', ',
 			removePropertyOnReset: true,
-			activeMediaQueryList: window.matchMedia('(min-width: 720px)')
+			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
+			activateImmediately: true
 		};
 
 		options = Object.assign({}, defaultOptions, options);
@@ -43,9 +44,13 @@ class ScrollAnimation {
 		this.ticking = false;
 		this.activated = false;
 
-		if(initImmediately) {
-			this.init();
+		if(this.activateImmediately) {
+			this.respond();
 		}
+
+		this.activeMediaQueryList.addListener(() => {
+			this.respond();
+		});
 	}
 
 	init() {
@@ -65,8 +70,8 @@ class ScrollAnimation {
 	}
 
 	setCSS(cssValues) {
-		this.animateTargets.forEach((animateTarget) => {
-			this.properties.forEach((animateProperty) => {
+		this.animateTargets.forEach(animateTarget => {
+			this.properties.forEach(animateProperty => {
 				animateTarget.style[animateProperty] = cssValues.join(this.valueSetSeparator);
 			});
 		});
@@ -77,7 +82,7 @@ class ScrollAnimation {
 
 		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
 
-		this.valueSets.forEach((valueSet) => {
+		this.valueSets.forEach(valueSet => {
 			cssValues.push(
 				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit)
 			);
@@ -97,14 +102,15 @@ class ScrollAnimation {
 
 	reset() {
 		if(this.removePropertyOnReset) {
-			this.animateTargets.forEach((animateTarget) => {
-				this.properties.forEach((property) => {
+			this.animateTargets.forEach(animateTarget => {
+				this.properties.forEach(property => {
 					animateTarget.style.removeProperty(property)
 				});
 			});
-		} else {			var cssValues = [];
+		} else {
+			var cssValues = [];
 
-			this.valueSets.forEach((valueSet) => {
+			this.valueSets.forEach(valueSet => {
 				cssValues.push(
 					valueSet.valueFormat.replace(valueSet.substitutionString, valueSet.resetValue.toString() + valueSet.unit)
 				);
@@ -123,7 +129,9 @@ class ScrollAnimation {
 
 	deactivate() {
 		if(this.activated) {
-			window.removeEventListener('scroll', this.listener);
+			this.listeners.forEach(listener => {
+				window.removeEventListener('scroll', listener);
+			});
 		}
 
 		this.reset();
