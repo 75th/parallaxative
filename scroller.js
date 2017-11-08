@@ -1,3 +1,5 @@
+
+
 class ScrollAnimationValueSet {
 	constructor(options) {
 		var defaultOptions = {
@@ -18,11 +20,11 @@ class ScrollAnimationValueSet {
 }
 
 class ScrollAnimation {
-	constructor(animateTargets, scrollDetector, options, valueSets) {
+	constructor(animateTargets, scrollDetector, options, valueSets = [ new ScrollAnimationValueSet ]) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
 			valueSetSeparator: ', ',
-			removePropertyOnReset: true,
+			removePropertiesOnReset: true,
 			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
 			activateImmediately: true
 		};
@@ -32,10 +34,6 @@ class ScrollAnimation {
 		Object.getOwnPropertyNames(options).forEach(name => {
 			this[name] = options[name];
 		});
-
-		if(typeof valueSets === 'undefined' || !valueSets.length) {
-			valueSets = [ new ScrollAnimationValueSet ];
-		}
 
 		this.animateTargets = animateTargets;
 		this.scrollDetector = scrollDetector;
@@ -84,7 +82,7 @@ class ScrollAnimation {
 
 		this.valueSets.forEach(valueSet => {
 			cssValues.push(
-				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit)
+				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + 'px')
 			);
 		});
 
@@ -101,7 +99,7 @@ class ScrollAnimation {
 	}
 
 	reset() {
-		if(this.removePropertyOnReset) {
+		if(this.removePropertiesOnReset) {
 			this.animateTargets.forEach(animateTarget => {
 				this.properties.forEach(property => {
 					animateTarget.style.removeProperty(property)
@@ -168,29 +166,13 @@ class ScrollDetector {
 		var rect = this.scrollTarget.getBoundingClientRect();
 
 		if(this.scrollIsVertical) {
-			if('scrollY' in window) {
-				scroll = window.scrollY;
-			} else if ('pageYOffset' in window) {
-				scroll = window.pageYOffset;
-			} else if (document.documentElement.scrollTop > 0) {
-				scroll = document.documentElement.scrollTop;
-			} else {
-				scroll = document.body.scrollTop;
-			}
+			scroll = this.getVerticalScroll();
 			offset = rect.top + scroll;
 			size = rect.height;
 			windowSize = window.innerHeight;
 			scrollPos = window.pageYOffset;
 		} else {
-			if('scrollX' in window) {
-				scroll = window.scrollX;
-			} else if ('pageXOffset' in window) {
-				scroll = window.pageXOffset;
-			} else if (document.documentElement.scrollLeft > 0) {
-				scroll = document.documentElement.scrollLeft;
-			} else {
-				scroll = document.body.scrollLeft;
-			}
+			scroll = this.getHorizontalScroll();
 			offset = rect.left + scroll;
 			size = rect.width;
 			windowSize = window.innerWidth;
@@ -204,5 +186,29 @@ class ScrollDetector {
 
 	clampedRelativeScrollPosition(relativeScrollPosition = this.relativeScrollPosition()) {
 		return Math.min(Math.max(relativeScrollPosition, 0), 1);
+	}
+
+	getVerticalScroll() {
+		if('scrollY' in window) {
+			return window.scrollY;
+		} else if ('pageYOffset' in window) {
+			return window.pageYOffset;
+		} else if (document.documentElement.scrollTop > 0) {
+			return document.documentElement.scrollTop;
+		} else {
+			return document.body.scrollTop;
+		}
+	}
+
+	getHorizontalScroll() {
+		if('scrollX' in window) {
+			return window.scrollX;
+		} else if ('pageXOffset' in window) {
+			return window.pageXOffset;
+		} else if (document.documentElement.scrollLeft > 0) {
+			return document.documentElement.scrollLeft;
+		} else {
+			return document.body.scrollLeft;
+		}
 	}
 }
