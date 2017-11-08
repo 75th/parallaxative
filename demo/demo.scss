@@ -35,13 +35,13 @@ blockquote {
 	> div.bg {
 		background-image: url('bgimg.jpg');
 		background-size: cover;
+		background-position: bottom center;
 		width: 100%;
 		height: 100%;
 		position: absolute;
 		top: 0px;
 		left: 0px;
 		z-index: 1;
-		border: 2px solid red;
 	}
 
 	> div.content {

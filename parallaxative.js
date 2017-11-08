@@ -4,7 +4,6 @@ class ParallaxativeAnimationValueSet {
 			valueFormat: 'translateY(_)',
 			substitutionString: '_',
 			scrollPixelsPerParallaxPixel: 10,
-			parallaxElementFocus: 'top',
 			resetValue: 0
 		};
 
@@ -52,42 +51,17 @@ class ParallaxativeAnimation extends ScrollAnimation {
 
 		this.valueSets.forEach(valueSet => {
 
-			var zeroPointPercent, startPoint, endPoint, pos;
-
-			var parallaxDistance = scrollDistance / valueSet.scrollPixelsPerParallaxPixel;
-
-			if(valueSet.parallaxElementFocus === 'bottom') {
-				zeroPointPercent = scrollTargetRect[dimension] / scrollDistance;
-				startPoint = -(parallaxDistance * zeroPointPercent);
-				endPoint = startPoint + parallaxDistance;
-				pos = Math.floor((parallaxDistance * (1 - scrollPosition)) + startPoint);
-
-			} else {
-				zeroPointPercent = window['inner' + capitalizedDimension] / scrollDistance;
-				startPoint = parallaxDistance * zeroPointPercent;
-				endPoint = startPoint - parallaxDistance;
-				pos = Math.floor((parallaxDistance * scrollPosition) + endPoint);
-			}
+			var parallaxDistance = Math.floor(scrollDistance / valueSet.scrollPixelsPerParallaxPixel);
+			var pos = -parallaxDistance * scrollPosition;
 
 			cssValues.push(
 				valueSet.valueFormat.replace(valueSet.substitutionString, pos.toString() + 'px')
 			);
 
 			this.animateTargets.forEach(animateTarget => {
-				var targetDimensionSize = Math.min(
-					this.scrollDetector.scrollTarget['client' + capitalizedDimension] + (parallaxDistance * 2),
-					window['inner' + capitalizedDimension] + (parallaxDistance * 2)
-				).toString() + 'px';
+				var targetDimensionSize = Math.ceil(this.scrollDetector.scrollTarget.clientHeight + parallaxDistance).toString() + 'px';
 
 				animateTarget.style[dimension] = targetDimensionSize;
-
-				if(valueSet.parallaxElementFocus === 'bottom') {
-					animateTarget.style[endingOffsetDimension] = 'auto';
-					animateTarget.style[beginningOffsetDimension] = '0px';
-				} else {
-					animateTarget.style[endingOffsetDimension] = '0px';
-					animateTarget.style[beginningOffsetDimension] = 'auto';
-				}
 			});
 		});
 
