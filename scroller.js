@@ -1,6 +1,22 @@
-
-
+/**
+ * Default option container for ScrollAnimation CSS values.
+ * Making this a class might be overkill?
+ */
 class ScrollAnimationValueSet {
+
+	/**
+	 * Constructor. All it does is merge supplied options with defaults.
+	 *
+	 * @param {obj} options
+	 *     Parameters for constructing CSS values to be put in a single CSS rule.
+	 *         {str} unit: CSS unit
+	 *         {str} valueFormat: String surrounding the CSS value, using a substitution string of your choice
+	 *         {str} substitutionString: As above
+	 *         {number} startValue: The value applied to the element the moment it is scrolled onto the screen
+	 *         {number} endValue: The value applied to the element the moment it is scrolled off the screen
+	 *         {number} resetValue: The value applied to the element when the animation is disabled
+	 *
+	 */
 	constructor(options) {
 		var defaultOptions = {
 			unit: 'vh',
@@ -19,7 +35,32 @@ class ScrollAnimationValueSet {
 	}
 }
 
+/**
+ * Class to create and manage animations that are based on scrolling the window.
+ */
 class ScrollAnimation {
+	/**
+	 * Constructor.
+	 *
+	 * @param {array<HTMLElement>} animateTargets
+	 *     The elements to animate based on the scroll position of the ScrollDetector
+	 *
+	 * @param {ScrollDetector} scrollDetector
+	 *
+	 * @param {object} options
+	 *     Other options that may be omitted to use default values
+	 *         {array<string>} properties: The JavaScript CSS property names to modify
+	 *         {string} valueSetSeparator: String on which to join the different CSS values for this rule
+	 *         {bool} removePropertiesOnReset: Whether to unset the CSS properties altogether on deactivation,
+	 *             instead of setting them to the resetValue
+	 *         {MediaQueryList} activeMediaQueryList: The MediaQueryList controlling activation and deactivation of this object
+	 *         {bool} activateImmediately: Whether to turn on the animation immediately upon construction.
+	 *             (Even if true, the animation will not activate if activeMediaQueryList.matches is false.)
+	 *
+	 * @param {array<ScrollAnimationValueSet>} valueSets
+	 *     Configuration for one or more values to be used in the single CSS rule
+	 *     this object manages.
+	 */
 	constructor(animateTargets, scrollDetector, options, valueSets = [ new ScrollAnimationValueSet() ]) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
@@ -51,6 +92,11 @@ class ScrollAnimation {
 		});
 	}
 
+	/**
+	 * Set up and turn on the animation.
+	 *
+	 * @return {void}
+	 */
 	init() {
 		this.animateTargets.forEach(animateTarget => {
 			animateTarget.classList.add('scroll-animated');
@@ -67,6 +113,11 @@ class ScrollAnimation {
 		});
 	}
 
+	/**
+	 * Actually modify the CSS of the animateTarget.
+	 *
+	 * @param {array<string>} cssValues - CSS strings to be joined by the valueSetSeparator
+	 */
 	setCSS(cssValues) {
 		this.animateTargets.forEach(animateTarget => {
 			this.properties.forEach(animateProperty => {
@@ -74,6 +125,7 @@ class ScrollAnimation {
 			});
 		});
 	}
+
 
 	updateCSS() {
 		var cssValues = [];
@@ -90,6 +142,11 @@ class ScrollAnimation {
 		this.ticking = false;
 	}
 
+	/**
+	 * Throttle CSS updates to requestAnimationFrame.
+	 *
+	 * @return {void}
+	 */
 	requestUpdate() {
 		if(!this.ticking) {
 			requestAnimationFrame(() => { this.updateCSS() });
@@ -98,6 +155,11 @@ class ScrollAnimation {
 		this.ticking = true;
 	}
 
+	/**
+	 * Set animateTarget CSS to prepare for deactivation of the animation.
+	 *
+	 * @return {void}
+	 */
 	reset() {
 		if(this.removePropertiesOnReset) {
 			this.animateTargets.forEach(animateTarget => {
@@ -118,6 +180,11 @@ class ScrollAnimation {
 		}
 	}
 
+	/**
+	 * Call this.init() if it's not activated already
+	 *
+	 * @return {void}
+	 */
 	activate() {
 		if(!this.activated) {
 			this.init();
@@ -125,6 +192,11 @@ class ScrollAnimation {
 		}
 	}
 
+	/**
+	 * Disable the animation and restore default values.
+	 *
+	 * @return {void}
+	 */
 	deactivate() {
 		if(this.activated) {
 			this.listeners.forEach(listener => {
@@ -136,6 +208,11 @@ class ScrollAnimation {
 		this.activated = false;
 	}
 
+	/**
+	 * Call activate() or deactivate() as needed, depending on the activeMediaQueryList.
+	 *
+	 * @return {[type]}
+	 */
 	respond() {
 		if(this.activeMediaQueryList.matches) {
 			this.activate();
@@ -145,7 +222,22 @@ class ScrollAnimation {
 	}
 }
 
+
+/**
+ * Track the relative position of an element as it scrolls by.
+ */
 class ScrollDetector {
+	/**
+	 * Constructor.
+	 *
+	 * @param {HTMLElement} scrollTarget
+	 *     Element whose position to track
+	 * @param {object} options
+	 *     Other options that may be omitted to use default values
+	 *         {bool} scrollIsVertical: Whether to track horizontal or vertical scrolling position.
+	 *
+	 * @todo Track vertical and horizontal position at the same time, and let animations use both simultaneously
+	 */
 	constructor(scrollTarget, options) {
 		var defaultOptions = {
 			scrollIsVertical: true
@@ -160,6 +252,14 @@ class ScrollDetector {
 		});
 	}
 
+	/**
+	 * The relative position of the element, where 0 is the pixel
+	 * before it scrolls onto the screen, and 1 is the pixel after
+	 * it scrolls off the screen. All other values are interpolated
+	 * linearly.
+	 *
+	 * @return {float}
+	 */
 	relativeScrollPosition() {
 		var offset, size, windowSize, scrollPos, scroll;
 
@@ -184,10 +284,26 @@ class ScrollDetector {
 		return (scrollPos - zeroPoint) / (completePoint - zeroPoint);
 	}
 
+
+	/**
+	 * Same as relativeScrollPosition, except all negative values are returned as zero
+	 * and all values greater than 1 are returned as 1.
+	 *
+	 * @param {float} relativeScrollPosition
+	 *     The relativeScrollPosition can be provided as a parameter to save on calculating
+	 *     it multiple times in the same function.
+	 *
+	 * @return {[type]}
+	 */
 	clampedRelativeScrollPosition(relativeScrollPosition = this.relativeScrollPosition()) {
 		return Math.min(Math.max(relativeScrollPosition, 0), 1);
 	}
 
+	/**
+	 * Fallbacks upon fallbacks for window.scrollY
+	 *
+	 * @return {number}
+	 */
 	getVerticalScroll() {
 		if('scrollY' in window) {
 			return window.scrollY;
@@ -200,6 +316,11 @@ class ScrollDetector {
 		}
 	}
 
+	/**
+	 * Fallbacks upon fallbacks for window.scrollX
+	 *
+	 * @return {number}
+	 */
 	getHorizontalScroll() {
 		if('scrollX' in window) {
 			return window.scrollX;
