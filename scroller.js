@@ -20,7 +20,7 @@ class ScrollAnimationValueSet {
 }
 
 class ScrollAnimation {
-	constructor(animateTargets, scrollDetector, options, valueSets = [ new ScrollAnimationValueSet ]) {
+	constructor(animateTargets, scrollDetector, options, valueSets = [ new ScrollAnimationValueSet() ]) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
 			valueSetSeparator: ', ',
@@ -82,7 +82,7 @@ class ScrollAnimation {
 
 		this.valueSets.forEach(valueSet => {
 			cssValues.push(
-				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + 'px')
+				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit)
 			);
 		});
 
