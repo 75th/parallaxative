@@ -18,4 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			window.scrollDetectors[1]
 		)
 	);
+
+	window.scrollAnimations[1].valueSets[0].scrollPixelsPerParallaxPixel = 10;
 });

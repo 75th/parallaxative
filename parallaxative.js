@@ -89,26 +89,23 @@ class ParallaxativeAnimation extends ScrollAnimation {
 		var cssValues = [];
 		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
 
-		var scrollTargetRect = this.scrollDetector.scrollTarget.getBoundingClientRect();
-
 		var dimension = this.scrollDetector.scrollIsVertical ? 'height' : 'width';
 		var capitalizedDimension = dimension.slice(0,1).toUpperCase() + dimension.slice(1);
-
-		var scrollDistance = scrollTargetRect[dimension] + window['inner' + capitalizedDimension];
+		var scrollTargetSize = this.scrollDetector.scrollTarget.getBoundingClientRect()[dimension];
+		var scrollDistance = scrollTargetSize + window['inner' + capitalizedDimension];
 
 		this.valueSets.forEach(valueSet => {
-
-			var parallaxDistance = Math.floor(scrollDistance / valueSet.scrollPixelsPerParallaxPixel);
-			var pos = -parallaxDistance * scrollPosition;
+			// FIXME: scrollPixelsPerParallaxPixel is not quite being mathed right here.
+			// I need to work in the ratio between the scrollTarget height and the window height somewhere.
+			var parallaxSize = scrollDistance - (scrollDistance / valueSet.scrollPixelsPerParallaxPixel) + scrollTargetSize;
+			var pos = ((parallaxSize - scrollTargetSize) * scrollPosition);
 
 			cssValues.push(
 				valueSet.valueFormat.replace(valueSet.substitutionString, pos.toString() + 'px')
 			);
 
 			this.animateTargets.forEach(animateTarget => {
-				var targetDimensionSize = Math.ceil(this.scrollDetector.scrollTarget.clientHeight + parallaxDistance).toString() + 'px';
-
-				animateTarget.style[dimension] = targetDimensionSize; // FIXME: Do this once, not every tick!!
+				animateTarget.style[dimension] = parallaxSize.toString() + 'px'; // FIXME: Do this once, not every tick!!
 			});
 		});
 
