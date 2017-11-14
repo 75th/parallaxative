@@ -102,14 +102,15 @@ class ScrollAnimation {
 			animateTarget.classList.add('scroll-animated');
 			this.updateCSS();
 
-			this.listeners.push(() => {
+			this.listeners.push((e) => {
 				var relativeScrollPosition = this.scrollDetector.relativeScrollPosition();
 				if(relativeScrollPosition > -0.1 || relativeScrollPosition < 1.1) {
-					this.requestUpdate();
+					this.requestUpdate(e);
 				}
 			});
 
 			window.addEventListener('scroll', this.listeners[this.listeners.length - 1]);
+			window.addEventListener('resize', this.listeners[this.listeners.length - 1]);
 		});
 	}
 
@@ -149,7 +150,7 @@ class ScrollAnimation {
 	 */
 	requestUpdate() {
 		if(!this.ticking) {
-			requestAnimationFrame(() => { this.updateCSS() });
+			requestAnimationFrame(() => { this.updateCSS(); });
 		}
 
 		this.ticking = true;

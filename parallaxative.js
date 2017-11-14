@@ -73,11 +73,32 @@ class ParallaxativeAnimation extends ScrollAnimation {
 	init() {
 		super.init();
 
+		this.updateResizeCSS();
+
 		this.animateTargets.forEach(animateTarget => {
 			animateTarget.classList.add('parallaxative-animated');
 		});
 
 		this.scrollDetector.scrollTarget.classList.add('parallaxative-container')
+	}
+
+	getStats() {
+		var stats = {};
+		var xDimensions = { size: 'width', Size: 'Width', offset: 'left' };
+		var yDimensions = { size: 'height', Size: 'Height', offset: 'top' }
+
+		stats.dimensions =  { scroll: {}, cross: {} }
+
+		stats.scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
+
+		stats.dimensions.scroll = this.scrollDetector.scrollIsVertical ? yDimensions : xDimensions;
+		stats.dimensions.cross = stats.dimensions.scroll === xDimensions ? yDimensions : xDimensions;
+
+		stats.scrollTargetRect = this.scrollDetector.scrollTarget.getBoundingClientRect();
+		stats.scrollTargetScrollSize = stats.scrollTargetRect[stats.dimensions.scroll.size];
+		stats.scrollDistance = stats.scrollTargetScrollSize + window['inner' + stats.dimensions.scroll.Size];
+
+		return stats;
 	}
 
 	/**
@@ -86,30 +107,47 @@ class ParallaxativeAnimation extends ScrollAnimation {
 	 * @return {void}
 	 */
 	updateCSS() {
+		var s = this.getStats();
 		var cssValues = [];
-		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
-
-		var dimension = this.scrollDetector.scrollIsVertical ? 'height' : 'width';
-		var capitalizedDimension = dimension.slice(0,1).toUpperCase() + dimension.slice(1);
-		var scrollTargetSize = this.scrollDetector.scrollTarget.getBoundingClientRect()[dimension];
-		var scrollDistance = scrollTargetSize + window['inner' + capitalizedDimension];
 
 		this.valueSets.forEach(valueSet => {
-			// FIXME: scrollPixelsPerParallaxPixel is not quite being mathed right here.
-			// I need to work in the ratio between the scrollTarget height and the window height somewhere.
-			var parallaxSize = scrollDistance - (scrollDistance / valueSet.scrollPixelsPerParallaxPixel) + scrollTargetSize;
-			var pos = ((parallaxSize - scrollTargetSize) * scrollPosition);
+			var parallaxSize = Math.ceil(s.scrollDistance - (s.scrollDistance / valueSet.scrollPixelsPerParallaxPixel) + s.scrollTargetScrollSize);
+			var scrollTranslate = Math.round(-((s.scrollTargetScrollSize - parallaxSize) * s.scrollPosition));
 
 			cssValues.push(
-				valueSet.valueFormat.replace(valueSet.substitutionString, pos.toString() + 'px')
+				valueSet.valueFormat.replace(valueSet.substitutionString, scrollTranslate.toString() + 'px')
 			);
 
-			this.animateTargets.forEach(animateTarget => {
-				animateTarget.style[dimension] = parallaxSize.toString() + 'px'; // FIXME: Do this once, not every tick!!
-			});
+
 		});
 
-		super.setCSS(cssValues);
+		this.setCSS(cssValues);
 		this.ticking = false;
+	}
+
+	updateResizeCSS() {
+		var s = this.getStats();
+
+		this.valueSets.forEach(valueSet => {
+			var parallaxSize = Math.round(s.scrollDistance - (s.scrollDistance / valueSet.scrollPixelsPerParallaxPixel) + s.scrollTargetScrollSize);
+
+			this.animateTargets.forEach(animateTarget => {
+				animateTarget.style[s.dimensions.scroll.size] = parallaxSize.toString() + 'px';
+			});
+		})
+	}
+
+	requestUpdate(event) {
+		if(!this.ticking) {
+			requestAnimationFrame(() => {
+				this.updateCSS();
+
+				if(event.type === 'resize') {
+					this.updateResizeCSS();
+				}
+			});
+		}
+
+		this.ticking = true;
 	}
 }
