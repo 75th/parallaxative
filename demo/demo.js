@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			[
 				new ParallaxativeAnimationValueSet(
 					{
-						scrollPixelsPerParallaxPixel: 10
+						scrollPixelsPerParallaxPixel: 2
 					}
 				)
 			]

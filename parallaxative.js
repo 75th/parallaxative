@@ -33,6 +33,10 @@ class ScrollAnimationValueSet {
 			this[name] = options[name];
 		});
 	}
+
+	getCSSValue(scrollPosition) {
+		return this.valueFormat.replace(this.substitutionString, ((this.endValue - this.startValue) * scrollPosition + this.startValue).toString() + this.unit)
+	}
 }
 
 /**
@@ -136,11 +140,10 @@ class ScrollAnimation {
 
 		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
 
-		this.valueSets.forEach(valueSet => {
-			cssValues.push(
-				valueSet.valueFormat.replace(valueSet.substitutionString, ((valueSet.endValue - valueSet.startValue) * scrollPosition + valueSet.startValue).toString() + valueSet.unit)
-			);
-		});
+		var length = this.valueSets.length;
+		for(var i = 0; i < length; i++) {
+			cssValues.push( this.valueSets[i].getCSSValue(scrollPosition) );
+		}
 
 		this.setCSS(cssValues);
 		this.ticking = false;
@@ -439,7 +442,7 @@ class ParallaxativeAnimation extends ScrollAnimation {
 
 		for(var i = 0; i < this.valueSets.length; i++) {
 			var valueSet = this.valueSets[i];
-			var scrollTranslate = Math.floor(-((this.scrollTargetSize - valueSet.parallaxSize) * scrollPosition));
+			var scrollTranslate = (-((this.scrollTargetSize - valueSet.parallaxSize) * scrollPosition));
 
 			cssValues.push(
 				valueSet.valueFormat.replace(valueSet.substitutionString, scrollTranslate.toString() + 'px')
@@ -455,19 +458,23 @@ class ParallaxativeAnimation extends ScrollAnimation {
 		this.scrollTargetSize = this.scrollTargetRect[this.dimensions.size];
 		this.scrollDistance = this.scrollTargetSize + window['inner' + this.dimensions.Size];
 
-		this.valueSets.forEach(valueSet => {
-			valueSet.parallaxSize = Math.ceil(this.scrollDistance - (this.scrollDistance / valueSet.scrollPixelsPerParallaxPixel) + this.scrollTargetSize);
-		});
+		var length = this.valueSets.length;
+		for (var i = 0; i < length; i++) {
+			this.valueSets[i].parallaxSize = (this.scrollDistance - (this.scrollDistance / this.valueSets[i].scrollPixelsPerParallaxPixel) + this.scrollTargetSize);
+		}
 	}
 
 	updateResizeCSS() {
 		this.updateResizeProperties();
 
-		this.valueSets.forEach(valueSet => {
-			this.animateTargets.forEach(animateTarget => {
-				animateTarget.style[this.dimensions.size] = valueSet.parallaxSize.toString() + 'px';
-			});
-		})
+		var valueSetsLength = this.valueSets.length;
+		var animateTargetsLength = this.animateTargets.length;
+
+		for (var i = 0; i < valueSetsLength; i++) {
+			for (var j = 0; i < animateTargetsLength; j++) {
+				this.animateTargets[j].style[this.dimensions.size] = this.valueSets[i].parallaxSize.toString() + 'px';
+			}
+		}
 	}
 
 	requestUpdate(event) {
