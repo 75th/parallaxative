@@ -7,7 +7,7 @@
 		"uuidString": "707292DB-D6E0-4A9E-B1BC-12A2A27FF136"
 		}
 	],
-"creatorBuild": "26097",
+"creatorBuild": "26148",
 "files": {
 	"\/demo\/bgimg.jpg": {
 		"ft": 16384,
@@ -1526,7 +1526,7 @@
 			"optionString": "'never', {'exceptRange': false, 'onlyEquality': false}"
 			}
 		},
-	"esLintSourceType": 0,
+	"esLintSourceType": 1,
 	"externalServerAddress": "http:\/\/localhost:8888",
 	"gitIgnoreBuildFolder": 1,
 	"hideConfigFile": 0,

@@ -1,7 +1,7 @@
 /**
  * Track the relative position of an element as it scrolls by.
  */
-class ScrollDetector {
+export class ScrollDetector {
 	/**
 	 * Constructor.
 	 *
@@ -36,22 +36,21 @@ class ScrollDetector {
 	 * @return {float}
 	 */
 	relativeScrollPosition() {
-		var offset, size, windowSize, scrollPos, scroll;
+		var offset, size, windowSize, scrollPos;
 
 		var rect = this.scrollTarget.getBoundingClientRect();
 
 		if(this.scrollIsVertical) {
-			scroll = this.getVerticalScroll();
-			offset = rect.top + scroll;
+			scrollPos = this.getVerticalScroll();
+			offset = rect.top + scrollPos;
 			size = rect.height;
 			windowSize = window.innerHeight;
-			scrollPos = window.pageYOffset;
+
 		} else {
-			scroll = this.getHorizontalScroll();
-			offset = rect.left + scroll;
+			scrollPos = this.getHorizontalScroll();
+			offset = rect.left + scrollPos;
 			size = rect.width;
 			windowSize = window.innerWidth;
-			scrollPos = window.pageXOffset;
 		}
 
 		var zeroPoint = offset - windowSize;
@@ -114,7 +113,7 @@ class ScrollDetector {
  * Default option container for ScrollAnimation CSS values.
  * Making this a class might be overkill?
  */
-class ScrollAnimationValueSet {
+export class ScrollAnimationValueSet {
 
 	/**
 	 * Constructor. All it does is merge supplied options with defaults.
@@ -132,7 +131,7 @@ class ScrollAnimationValueSet {
 	constructor(options) {
 		var defaultOptions = {
 			unit: 'vh',
-			valueFormat: 'translateY(_)',
+			valueFormat: 'translate3d(0, _, 0)',
 			substitutionString: '_',
 			startValue: 20,
 			endValue: -20,
@@ -154,7 +153,7 @@ class ScrollAnimationValueSet {
 /**
  * Class to create and manage animations that are based on scrolling the window.
  */
-class ScrollAnimation {
+export class ScrollAnimation {
 	/**
 	 * Constructor.
 	 *
@@ -343,9 +342,9 @@ class ScrollAnimation {
 }
 
 /**
- * Default option container for ParallaxativeAnimation CSS values.
+ * Default option container for ParallaxAnimation CSS values.
  */
-class ParallaxativeAnimationValueSet {
+export class ParallaxAnimationValueSet {
 	/**
 	 * Constructor. All it does is merge supplied options with defaults.
 	 *
@@ -382,7 +381,7 @@ class ParallaxativeAnimationValueSet {
 /**
  * Class to create and manage animations of parallax background elements.
  */
-class ParallaxativeAnimation extends ScrollAnimation {
+export class ParallaxAnimation extends ScrollAnimation {
 	/**
 	 * Constructor.
 	 *
@@ -405,7 +404,7 @@ class ParallaxativeAnimation extends ScrollAnimation {
 	 *     Configuration for one or more values to be used in the single CSS rule
 	 *     this object manages.
 	 */
-	constructor(animateTargets, scrollDetector, options, valueSets = [ new ParallaxativeAnimationValueSet ]) {
+	constructor(animateTargets, scrollDetector, options, valueSets = [ new ParallaxAnimationValueSet ]) {
 		super(animateTargets, scrollDetector, options, valueSets);
 	}
 
@@ -426,10 +425,10 @@ class ParallaxativeAnimation extends ScrollAnimation {
 		this.updateResizeCSS();
 
 		this.animateTargets.forEach(animateTarget => {
-			animateTarget.classList.add('parallaxative-animated');
+			animateTarget.classList.add('parallax-animated');
 		});
 
-		this.scrollDetector.scrollTarget.classList.add('parallaxative-container')
+		this.scrollDetector.scrollTarget.classList.add('parallax-container')
 	}
 
 	/**
