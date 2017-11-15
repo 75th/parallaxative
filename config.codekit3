@@ -9,23 +9,6 @@
 	],
 "creatorBuild": "26097",
 "files": {
-	"\/css\/parallaxative.css": {
-		"aP": 1,
-		"bl": 0,
-		"ft": 16,
-		"ma": 0,
-		"oA": 0,
-		"oAP": "\/css\/parallaxative-min.css",
-		"oF": 0,
-		"oS": 3
-		},
-	"\/css\/parallaxative.css.map": {
-		"cB": 0,
-		"ft": 8192,
-		"oA": 0,
-		"oAP": "\/css\/parallaxative.css.map",
-		"oF": 0
-		},
 	"\/demo\/bgimg.jpg": {
 		"ft": 16384,
 		"iS": 1205371,
@@ -100,16 +83,6 @@
 		"oAP": "\/demo\/index.html",
 		"oF": 0
 		},
-	"\/parallaxative-old.js": {
-		"ft": 64,
-		"ma": 0,
-		"mi": 1,
-		"oA": 1,
-		"oAP": "\/min\/parallaxative-old-min.js",
-		"oF": 1,
-		"sC": 1,
-		"tS": 0
-		},
 	"\/parallaxative.js": {
 		"ft": 64,
 		"ma": 1,
@@ -137,19 +110,6 @@
 		"oAP": "\/parallaxative.min.js.map",
 		"oF": 0
 		},
-	"\/parallaxative.scss": {
-		"aP": 1,
-		"bl": 1,
-		"dP": 10,
-		"dS": 0,
-		"ft": 4,
-		"ma": 1,
-		"oA": 0,
-		"oAP": "\/css\/parallaxative.css",
-		"oF": 0,
-		"oS": 0,
-		"uL": 1
-		},
 	"\/readme.md": {
 		"cB": 0,
 		"cS": 0,
@@ -167,43 +127,6 @@
 		"pME": 1,
 		"rFN": 0,
 		"uCM": 0
-		},
-	"\/scroller-old.js": {
-		"ft": 64,
-		"ma": 0,
-		"mi": 1,
-		"oA": 1,
-		"oAP": "\/min\/scroller-old-min.js",
-		"oF": 1,
-		"sC": 1,
-		"tS": 0
-		},
-	"\/scroller.js": {
-		"ft": 64,
-		"ma": 1,
-		"mi": 1,
-		"oA": 0,
-		"oAP": "\/scroller.min.js",
-		"oF": 2,
-		"sC": 3,
-		"tS": 1
-		},
-	"\/scroller.min.js": {
-		"ft": 64,
-		"ma": 0,
-		"mi": 1,
-		"oA": 0,
-		"oAP": "\/min\/scroller.min-min.js",
-		"oF": 0,
-		"sC": 1,
-		"tS": 0
-		},
-	"\/scroller.min.js.map": {
-		"cB": 0,
-		"ft": 8192,
-		"oA": 0,
-		"oAP": "\/scroller.min.js.map",
-		"oF": 0
 		}
 	},
 "hooks": [
