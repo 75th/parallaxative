@@ -440,12 +440,12 @@ class ParallaxativeAnimation extends ScrollAnimation {
 		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
 		var cssValues = [];
 
-		for(var i = 0; i < this.valueSets.length; i++) {
-			var valueSet = this.valueSets[i];
-			var scrollTranslate = (-((this.scrollTargetSize - valueSet.parallaxSize) * scrollPosition));
+		var length = this.valueSets.length;
+		for(var i = 0; i < length; i++) {
+			var scrollTranslate = -((this.scrollTargetSize - this.valueSets[i].parallaxSize) * scrollPosition);
 
 			cssValues.push(
-				valueSet.valueFormat.replace(valueSet.substitutionString, scrollTranslate.toString() + 'px')
+				this.valueSets[i].valueFormat.replace(this.valueSets[i].substitutionString, scrollTranslate.toString() + 'px')
 			);
 		}
 
@@ -471,7 +471,7 @@ class ParallaxativeAnimation extends ScrollAnimation {
 		var animateTargetsLength = this.animateTargets.length;
 
 		for (var i = 0; i < valueSetsLength; i++) {
-			for (var j = 0; i < animateTargetsLength; j++) {
+			for (var j = 0; j < animateTargetsLength; j++) {
 				this.animateTargets[j].style[this.dimensions.size] = this.valueSets[i].parallaxSize.toString() + 'px';
 			}
 		}
