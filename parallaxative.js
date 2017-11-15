@@ -1,4 +1,116 @@
 /**
+ * Track the relative position of an element as it scrolls by.
+ */
+class ScrollDetector {
+	/**
+	 * Constructor.
+	 *
+	 * @param {HTMLElement} scrollTarget
+	 *     Element whose position to track
+	 * @param {object} options
+	 *     Other options that may be omitted to use default values
+	 *         {bool} scrollIsVertical: Whether to track horizontal or vertical scrolling position.
+	 *
+	 * @todo Track vertical and horizontal position at the same time, and let animations use both simultaneously
+	 */
+	constructor(scrollTarget, options) {
+		var defaultOptions = {
+			scrollIsVertical: true
+		};
+
+		this.scrollTarget = scrollTarget;
+
+		options = Object.assign({}, defaultOptions, options);
+
+		Object.getOwnPropertyNames(options).forEach(name => {
+			this[name] = options[name];
+		});
+	}
+
+	/**
+	 * The relative position of the element, where 0 is the pixel
+	 * before it scrolls onto the screen, and 1 is the pixel after
+	 * it scrolls off the screen. All other values are interpolated
+	 * linearly.
+	 *
+	 * @return {float}
+	 */
+	relativeScrollPosition() {
+		var offset, size, windowSize, scrollPos, scroll;
+
+		var rect = this.scrollTarget.getBoundingClientRect();
+
+		if(this.scrollIsVertical) {
+			scroll = this.getVerticalScroll();
+			offset = rect.top + scroll;
+			size = rect.height;
+			windowSize = window.innerHeight;
+			scrollPos = window.pageYOffset;
+		} else {
+			scroll = this.getHorizontalScroll();
+			offset = rect.left + scroll;
+			size = rect.width;
+			windowSize = window.innerWidth;
+			scrollPos = window.pageXOffset;
+		}
+
+		var zeroPoint = offset - windowSize;
+		var completePoint = offset + size;
+		return (scrollPos - zeroPoint) / (completePoint - zeroPoint);
+	}
+
+
+	/**
+	 * Same as relativeScrollPosition, except all negative values are returned as zero
+	 * and all values greater than 1 are returned as 1.
+	 *
+	 * @param {float} relativeScrollPosition
+	 *     The relativeScrollPosition can be provided as a parameter to save on calculating
+	 *     it multiple times in the same function.
+	 *
+	 * @return {[type]}
+	 */
+	clampedRelativeScrollPosition(relativeScrollPosition = this.relativeScrollPosition()) {
+		return Math.min(Math.max(relativeScrollPosition, 0), 1);
+	}
+
+	/**
+	 * Fallbacks upon fallbacks for window.scrollY
+	 *
+	 * @return {number}
+	 */
+	getVerticalScroll() {
+		if('scrollY' in window) {
+			return window.scrollY;
+		} else if ('pageYOffset' in window) {
+			return window.pageYOffset;
+		} else if (document.documentElement.scrollTop > 0) {
+			return document.documentElement.scrollTop;
+		} else {
+			return document.body.scrollTop;
+		}
+	}
+
+	/**
+	 * Fallbacks upon fallbacks for window.scrollX
+	 *
+	 * @return {number}
+	 */
+	getHorizontalScroll() {
+		if('scrollX' in window) {
+			return window.scrollX;
+		} else if ('pageXOffset' in window) {
+			return window.pageXOffset;
+		} else if (document.documentElement.scrollLeft > 0) {
+			return document.documentElement.scrollLeft;
+		} else {
+			return document.body.scrollLeft;
+		}
+	}
+}
+
+
+/**
  * Default option container for ScrollAnimation CSS values.
  * Making this a class might be overkill?
  */
@@ -208,6 +320,7 @@ class ScrollAnimation {
 		if(this.activated) {
 			this.listeners.forEach(listener => {
 				window.removeEventListener('scroll', listener);
+				window.removeEventListener('resize', listener);
 			});
 		}
 
@@ -225,118 +338,6 @@ class ScrollAnimation {
 			this.activate();
 		} else {
 			this.deactivate();
-		}
-	}
-}
-
-
-/**
- * Track the relative position of an element as it scrolls by.
- */
-class ScrollDetector {
-	/**
-	 * Constructor.
-	 *
-	 * @param {HTMLElement} scrollTarget
-	 *     Element whose position to track
-	 * @param {object} options
-	 *     Other options that may be omitted to use default values
-	 *         {bool} scrollIsVertical: Whether to track horizontal or vertical scrolling position.
-	 *
-	 * @todo Track vertical and horizontal position at the same time, and let animations use both simultaneously
-	 */
-	constructor(scrollTarget, options) {
-		var defaultOptions = {
-			scrollIsVertical: true
-		};
-
-		this.scrollTarget = scrollTarget;
-
-		options = Object.assign({}, defaultOptions, options);
-
-		Object.getOwnPropertyNames(options).forEach(name => {
-			this[name] = options[name];
-		});
-	}
-
-	/**
-	 * The relative position of the element, where 0 is the pixel
-	 * before it scrolls onto the screen, and 1 is the pixel after
-	 * it scrolls off the screen. All other values are interpolated
-	 * linearly.
-	 *
-	 * @return {float}
-	 */
-	relativeScrollPosition() {
-		var offset, size, windowSize, scrollPos, scroll;
-
-		var rect = this.scrollTarget.getBoundingClientRect();
-
-		if(this.scrollIsVertical) {
-			scroll = this.getVerticalScroll();
-			offset = rect.top + scroll;
-			size = rect.height;
-			windowSize = window.innerHeight;
-			scrollPos = window.pageYOffset;
-		} else {
-			scroll = this.getHorizontalScroll();
-			offset = rect.left + scroll;
-			size = rect.width;
-			windowSize = window.innerWidth;
-			scrollPos = window.pageXOffset;
-		}
-
-		var zeroPoint = offset - windowSize;
-		var completePoint = offset + size;
-		return (scrollPos - zeroPoint) / (completePoint - zeroPoint);
-	}
-
-
-	/**
-	 * Same as relativeScrollPosition, except all negative values are returned as zero
-	 * and all values greater than 1 are returned as 1.
-	 *
-	 * @param {float} relativeScrollPosition
-	 *     The relativeScrollPosition can be provided as a parameter to save on calculating
-	 *     it multiple times in the same function.
-	 *
-	 * @return {[type]}
-	 */
-	clampedRelativeScrollPosition(relativeScrollPosition = this.relativeScrollPosition()) {
-		return Math.min(Math.max(relativeScrollPosition, 0), 1);
-	}
-
-	/**
-	 * Fallbacks upon fallbacks for window.scrollY
-	 *
-	 * @return {number}
-	 */
-	getVerticalScroll() {
-		if('scrollY' in window) {
-			return window.scrollY;
-		} else if ('pageYOffset' in window) {
-			return window.pageYOffset;
-		} else if (document.documentElement.scrollTop > 0) {
-			return document.documentElement.scrollTop;
-		} else {
-			return document.body.scrollTop;
-		}
-	}
-
-	/**
-	 * Fallbacks upon fallbacks for window.scrollX
-	 *
-	 * @return {number}
-	 */
-	getHorizontalScroll() {
-		if('scrollX' in window) {
-			return window.scrollX;
-		} else if ('pageXOffset' in window) {
-			return window.pageXOffset;
-		} else if (document.documentElement.scrollLeft > 0) {
-			return document.documentElement.scrollLeft;
-		} else {
-			return document.body.scrollLeft;
 		}
 	}
 }
