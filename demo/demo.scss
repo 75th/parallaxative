@@ -42,6 +42,7 @@ blockquote {
 		bottom: 0px;
 		left: 0px;
 		z-index: 1;
+		will-change: transform;
 	}
 
 	> div.content {
