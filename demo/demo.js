@@ -14,10 +14,16 @@ document.addEventListener('DOMContentLoaded', function() {
 		),
 
 		new ParallaxativeAnimation(
-			[document.querySelector('blockquote .bg')],
-			window.scrollDetectors[1]
+			[document.querySelector('blockquote .bg > div')],
+			window.scrollDetectors[1],
+			{},
+			[
+				new ParallaxativeAnimationValueSet(
+					{
+						scrollPixelsPerParallaxPixel: 10
+					}
+				)
+			]
 		)
 	);
-
-	window.scrollAnimations[1].valueSets[0].scrollPixelsPerParallaxPixel = 10;
 });

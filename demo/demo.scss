@@ -33,16 +33,23 @@ blockquote {
 	border: 1px solid green;
 
 	> div.bg {
-		background-image: url('bgimg.jpg');
-		background-size: cover;
-		background-position: bottom center;
 		width: 100%;
 		height: 100%;
 		position: absolute;
-		bottom: 0px;
 		left: 0px;
+		top: 0px;
 		z-index: 1;
-		will-change: transform;
+
+		> div {
+			background-image: url('bgimg.jpg');
+			background-size: cover;
+			background-position: bottom center;
+			position: absolute;
+			bottom: 0px;
+			width: 100%;
+			height: 100%;
+			will-change: transform;
+		}
 	}
 
 	> div.content {
