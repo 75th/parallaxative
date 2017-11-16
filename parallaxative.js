@@ -131,7 +131,7 @@ export class ScrollAnimationValueSet {
 	constructor(options) {
 		var defaultOptions = {
 			unit: 'vh',
-			valueFormat: 'translate3d(0, _, 0)',
+			valueFormat: 'translate3d(0px, _, 1px)',
 			substitutionString: '_',
 			startValue: 20,
 			endValue: -20,
@@ -179,7 +179,7 @@ export class ScrollAnimation {
 	constructor(animateTargets, scrollDetector, options, valueSets = [ new ScrollAnimationValueSet() ]) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
-			valueSetSeparator: ', ',
+			valueSetSeparator: ' ',
 			removePropertiesOnReset: true,
 			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
 			activateImmediately: true
@@ -360,7 +360,7 @@ export class ParallaxAnimationValueSet {
 	 */
 	constructor(options) {
 		var defaultOptions = {
-			valueFormat: 'translateY(_)',
+			valueFormat: 'translate3d(0px, _, 1px)',
 			substitutionString: '_',
 			scrollPixelsPerParallaxPixel: 10,
 			resetValue: 0
