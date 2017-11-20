@@ -25,6 +25,22 @@ class ScrollDetector {
 		Object.getOwnPropertyNames(options).forEach(name => {
 			this[name] = options[name];
 		});
+
+		this.updateResizeProperties();
+
+		window.addEventListener('resize', () => {
+			this.updateResizeProperties();
+		});
+
+		window.addEventListener('load', () => {
+			this.updateResizeProperties();
+		});
+	}
+
+	updateResizeProperties() {
+		this.rect = this.scrollTarget.getBoundingClientRect();
+		this.documentOffsets = {top: this.rect.top + this.getVerticalScroll(), left: this.rect.left + this.getHorizontalScroll() }
+		this.windowSizes = { width: window.innerWidth, height: window.innerHeight };
 	}
 
 	/**
@@ -38,19 +54,17 @@ class ScrollDetector {
 	relativeScrollPosition() {
 		var offset, size, windowSize, scrollPos;
 
-		var rect = this.scrollTarget.getBoundingClientRect();
-
 		if(this.scrollIsVertical) {
 			scrollPos = this.getVerticalScroll();
-			offset = rect.top + scrollPos;
-			size = rect.height;
-			windowSize = window.innerHeight;
+			offset = this.documentOffsets.top;
+			size = this.rect.height;
+			windowSize = this.windowSizes.height;
 
 		} else {
 			scrollPos = this.getHorizontalScroll();
-			offset = rect.left + scrollPos;
-			size = rect.width;
-			windowSize = window.innerWidth;
+			offset = this.documentOffsets.left;
+			size = this.rect.width;
+			windowSize = this.windowSizes.width;
 		}
 
 		var zeroPoint = offset - windowSize;
