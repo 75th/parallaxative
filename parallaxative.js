@@ -457,10 +457,12 @@ class ParallaxAnimation extends ScrollAnimation {
 
 		var length = this.valueSets.length;
 		for(var i = 0; i < length; i++) {
-			var scrollTranslate = -((this.scrollTargetSize - this.valueSets[i].parallaxSize) * scrollPosition);
+			var scrollTranslate;
 
 			if(this.valueSets[i].scrollPixelsPerParallaxPixel < 0) {
 				scrollTranslate = -((this.scrollTargetSize - this.valueSets[i].parallaxSize) * (1 - scrollPosition));
+			} else {
+				scrollTranslate = -((this.scrollTargetSize - this.valueSets[i].parallaxSize) * scrollPosition);
 			}
 
 			cssValues.push(
