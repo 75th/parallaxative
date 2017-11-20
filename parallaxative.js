@@ -386,8 +386,8 @@ class ParallaxAnimationValueSet {
 			this[name] = options[name];
 		});
 
-		if(this.scrollPixelsPerParallaxPixel <= 0) {
-			throw 'scrollPixelsPerParallaxPixel must be greater than zero.';
+		if(this.scrollPixelsPerParallaxPixel === 0) {
+			throw 'scrollPixelsPerParallaxPixel must not be zero.';
 		}
 	}
 }
@@ -452,11 +452,16 @@ class ParallaxAnimation extends ScrollAnimation {
 	 */
 	updateCSS() {
 		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
+
 		var cssValues = [];
 
 		var length = this.valueSets.length;
 		for(var i = 0; i < length; i++) {
 			var scrollTranslate = -((this.scrollTargetSize - this.valueSets[i].parallaxSize) * scrollPosition);
+
+			if(this.valueSets[i].scrollPixelsPerParallaxPixel < 0) {
+				scrollTranslate = -((this.scrollTargetSize - this.valueSets[i].parallaxSize) * (1 - scrollPosition));
+			}
 
 			cssValues.push(
 				this.valueSets[i].valueFormat.replace(this.valueSets[i].substitutionString, scrollTranslate.toString() + 'px')
@@ -474,7 +479,7 @@ class ParallaxAnimation extends ScrollAnimation {
 
 		var length = this.valueSets.length;
 		for (var i = 0; i < length; i++) {
-			this.valueSets[i].parallaxSize = (this.scrollDistance / this.valueSets[i].scrollPixelsPerParallaxPixel) + this.scrollTargetSize;
+			this.valueSets[i].parallaxSize = Math.abs(this.scrollDistance / this.valueSets[i].scrollPixelsPerParallaxPixel) + this.scrollTargetSize;
 		}
 	}
 
