@@ -1,7 +1,7 @@
 /**
  * Track the relative position of an element as it scrolls by.
  */
-export class ScrollDetector {
+class ScrollDetector {
 	/**
 	 * Constructor.
 	 *
@@ -113,7 +113,7 @@ export class ScrollDetector {
  * Default option container for ScrollAnimation CSS values.
  * Making this a class might be overkill?
  */
-export class ScrollAnimationValueSet {
+class ScrollAnimationValueSet {
 
 	/**
 	 * Constructor. All it does is merge supplied options with defaults.
@@ -153,7 +153,7 @@ export class ScrollAnimationValueSet {
 /**
  * Class to create and manage animations that are based on scrolling the window.
  */
-export class ScrollAnimation {
+class ScrollAnimation {
 	/**
 	 * Constructor.
 	 *
@@ -344,7 +344,7 @@ export class ScrollAnimation {
 /**
  * Default option container for ParallaxAnimation CSS values.
  */
-export class ParallaxAnimationValueSet {
+class ParallaxAnimationValueSet {
 	/**
 	 * Constructor. All it does is merge supplied options with defaults.
 	 *
@@ -381,7 +381,7 @@ export class ParallaxAnimationValueSet {
 /**
  * Class to create and manage animations of parallax background elements.
  */
-export class ParallaxAnimation extends ScrollAnimation {
+class ParallaxAnimation extends ScrollAnimation {
 	/**
 	 * Constructor.
 	 *
@@ -491,3 +491,5 @@ export class ParallaxAnimation extends ScrollAnimation {
 		this.ticking = true;
 	}
 }
+
+export { ScrollDetector, ScrollAnimation, ScrollAnimationValueSet, ParallaxAnimation, ParallaxAnimationValueSet };
