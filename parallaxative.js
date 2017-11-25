@@ -233,7 +233,7 @@ class ScrollAnimation {
 
 			this.listeners.push((e) => {
 				var relativeScrollPosition = this.scrollDetector.relativeScrollPosition();
-				if(relativeScrollPosition > -0.1 || relativeScrollPosition < 1.1) {
+				if(relativeScrollPosition > -0.1 && relativeScrollPosition < 1.1) {
 					this.requestUpdate(e);
 				}
 			});
