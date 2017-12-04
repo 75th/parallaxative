@@ -39,7 +39,7 @@ class ScrollDetector {
 
 	updateResizeProperties() {
 		this.rect = this.scrollTarget.getBoundingClientRect();
-		this.documentOffsets = {top: this.rect.top + this.getVerticalScroll(), left: this.rect.left + this.getHorizontalScroll() }
+		this.documentOffsets = {top: this.rect.top + this.constructor.getVerticalScroll(), left: this.rect.left + this.constructor.getHorizontalScroll() }
 		this.windowSizes = { width: window.innerWidth, height: window.innerHeight };
 	}
 
@@ -55,13 +55,13 @@ class ScrollDetector {
 		var offset, size, windowSize, scrollPos;
 
 		if(this.scrollIsVertical) {
-			scrollPos = this.getVerticalScroll();
+			scrollPos = this.constructor.getVerticalScroll();
 			offset = this.documentOffsets.top;
 			size = this.rect.height;
 			windowSize = this.windowSizes.height;
 
 		} else {
-			scrollPos = this.getHorizontalScroll();
+			scrollPos = this.constructor.getHorizontalScroll();
 			offset = this.documentOffsets.left;
 			size = this.rect.width;
 			windowSize = this.windowSizes.width;
@@ -92,7 +92,7 @@ class ScrollDetector {
 	 *
 	 * @return {number}
 	 */
-	getVerticalScroll() {
+	static getVerticalScroll() {
 		if('scrollY' in window) {
 			return window.scrollY;
 		} else if ('pageYOffset' in window) {
@@ -109,7 +109,7 @@ class ScrollDetector {
 	 *
 	 * @return {number}
 	 */
-	getHorizontalScroll() {
+	static getHorizontalScroll() {
 		if('scrollX' in window) {
 			return window.scrollX;
 		} else if ('pageXOffset' in window) {
@@ -118,6 +118,118 @@ class ScrollDetector {
 			return document.documentElement.scrollLeft;
 		} else {
 			return document.body.scrollLeft;
+		}
+	}
+}
+
+/**
+ * Run a function based on a ScrollDetector
+ */
+class ScrollTrigger {
+	constructor(scrollDetector, options = {}, triggerTarget = scrollDetector.scrollTarget) {
+		var defaultOptions = {
+			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
+			activateImmediately: true,
+			triggerPosition: 0.15,
+			triggerFunction: function(el) {
+				el.classList.remove('offscreen');
+			},
+			triggerOnDeactivate: true
+		}
+
+		options = Object.assign({}, defaultOptions, options);
+
+		Object.getOwnPropertyNames(options).forEach(name => {
+			this[name] = options[name];
+		});
+
+		this.scrollDetector = scrollDetector;
+		this.triggerTarget = triggerTarget;
+
+		this.activeMediaQueryList.addListener(() => {
+			this.respond();
+		});
+
+		if(this.activateImmediately) {
+			this.respond();
+		}
+	}
+
+	init() {
+		this.listener = () => {
+			var relativeScrollPosition = this.scrollDetector.relativeScrollPosition();
+			if(relativeScrollPosition > -0.1 && relativeScrollPosition < 1.1) {
+				this.requestUpdate();
+			}
+		};
+
+		this.listener();
+
+		window.addEventListener('scroll', this.listener);
+		window.addEventListener('resize', this.listener);
+	}
+
+	trigger() {
+		this.triggerFunction(this.triggerTarget);
+	}
+
+	test() {
+		if(this.scrollDetector.relativeScrollPosition() > this.triggerPosition) {
+			this.triggerOnDeactivate = true;
+			this.deactivate();
+		}
+
+		this.ticking = false;
+	}
+
+	/**
+	 * Throttle CSS updates to requestAnimationFrame.
+	 *
+	 * @return {void}
+	 */
+	requestUpdate() {
+		if(!this.ticking) {
+			requestAnimationFrame(() => { this.test(); });
+		}
+
+		this.ticking = true;
+	}
+
+	/**
+	 * Call this.init() if it's not activated already
+	 *
+	 * @return {void}
+	 */
+	activate() {
+		if(!this.activated) {
+			this.init();
+			this.activated = true;
+		}
+	}
+
+	deactivate() {
+		if(this.activated) {
+			window.removeEventListener('scroll', this.listener);
+			window.removeEventListener('resize', this.listener);
+
+			if(this.triggerOnDeactivate) {
+				this.trigger();
+			}
+		}
+
+		this.activated = false;
+	}
+
+	/**
+	 * Call activate() or deactivate() as needed, depending on the activeMediaQueryList.
+	 *
+	 * @return {[type]}
+	 */
+	respond() {
+		if(this.activeMediaQueryList.matches) {
+			this.activate();
+		} else {
+			this.deactivate();
 		}
 	}
 }
@@ -196,7 +308,9 @@ class ScrollAnimation {
 			valueSetSeparator: ' ',
 			removePropertiesOnReset: true,
 			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
-			activateImmediately: true
+			activateImmediately: true,
+			startPosition: 0, // FIXME: Not implemented
+			endPosition: 1 // FIXME: Not implemented
 		};
 
 		options = Object.assign({}, defaultOptions, options);
@@ -261,6 +375,7 @@ class ScrollAnimation {
 
 
 	updateCSS() {
+		this.ticking = false;
 		var cssValues = [];
 
 		var scrollPosition = this.scrollDetector.clampedRelativeScrollPosition();
@@ -271,7 +386,6 @@ class ScrollAnimation {
 		}
 
 		this.setCSS(cssValues);
-		this.ticking = false;
 	}
 
 	/**
@@ -513,4 +627,4 @@ class ParallaxAnimation extends ScrollAnimation {
 	}
 }
 
-export { ScrollDetector, ScrollAnimation, ScrollAnimationValueSet, ParallaxAnimation, ParallaxAnimationValueSet };
+export { ScrollDetector, ScrollTrigger, ScrollAnimation, ScrollAnimationValueSet, ParallaxAnimation, ParallaxAnimationValueSet };
