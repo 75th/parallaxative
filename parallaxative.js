@@ -550,7 +550,10 @@ class ParallaxAnimation extends ScrollAnimation {
 
 		super.init();
 
-		this.updateResizeCSS();
+		window.addEventListener('load', () => {
+			this.updateResizeCSS();
+			this.updateCSS();
+		});
 
 		this.animateTargets.forEach(animateTarget => {
 			animateTarget.classList.add('parallax-animated');
