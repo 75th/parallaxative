@@ -257,7 +257,7 @@ class ScrollAnimationValueSet {
 	constructor(options) {
 		var defaultOptions = {
 			unit: 'vh',
-			valueFormat: 'translate3d(0px, _, 1px)',
+			valueFormat: 'translate3d(0px, _, 0px)',
 			substitutionString: '_',
 			startValue: 20,
 			endValue: -20,
@@ -488,7 +488,7 @@ class ParallaxAnimationValueSet {
 	 */
 	constructor(options) {
 		var defaultOptions = {
-			valueFormat: 'translate3d(0px, _, 1px)',
+			valueFormat: 'translate3d(0px, _, 0px)',
 			substitutionString: '_',
 			scrollPixelsPerParallaxPixel: 10,
 			resetValue: 0
