@@ -1,0 +1,1 @@
+window.Px = window.Parallaxative;

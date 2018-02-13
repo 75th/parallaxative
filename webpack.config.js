@@ -1,6 +1,3 @@
-const path = require('path');
-require('babel-preset-env');
-
 module.exports = [
 	{
 		entry: {
@@ -11,7 +8,6 @@ module.exports = [
 			path: __dirname
 		},
 		devtool: 'source-map',
-		externals: /parallaxative/,
 		module: {
 			rules: [
 				{
@@ -21,7 +17,8 @@ module.exports = [
 						{
 							loader: 'babel-loader',
 							options: {
-								presets: ['env']
+								presets: ['env'],
+								plugins: ['transform-object-assign']
 							}
 						}
 					]
@@ -38,12 +35,12 @@ module.exports = [
 	},
 	{
 		entry: {
-			'dist/parallaxative.es7': './src/parallaxative.js?es7',
-			'dist/parallaxative.es5': './src/parallaxative.js?es5',
+			'dist/parallaxative': './src/parallaxative.js?es5',
 		},
 		output: {
 			filename: '[name].min.js',
-			path: __dirname
+			path: __dirname,
+			library: 'Parallaxative'
 		},
 		devtool: 'source-map',
 		module: {
@@ -51,23 +48,16 @@ module.exports = [
 				{
 					test: /parallaxative\.js$/,
 					exclude: /node_modules/,
-					oneOf: [
+					use: [
+						'uglify-loader',
 						{
-							resourceQuery: /es7/,
-							use: [ 'uglify-loader', 'script-loader', 'eslint-loader' ]
+							loader: 'babel-loader',
+							options: {
+								presets: ['env'],
+								plugins: ['transform-object-assign']
+							}
 						},
-						{
-							resourceQuery: /es5/,
-							use: [
-								'uglify-loader',
-								{
-									loader: 'babel-loader',
-									options: {
-										presets: ['env']
-									}
-								}
-							]
-						}
+						'eslint-loader'
 					]
 				}
 			]

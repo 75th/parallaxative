@@ -1,5 +1,3 @@
-import * as Px from '../src/parallaxative';
-
 document.addEventListener('DOMContentLoaded', function() {
 	window.scrollAnimations = [];
 	window.scrollDetectors = [];
