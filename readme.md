@@ -4,6 +4,8 @@ A vanilla JS library to help those who must implement parallax under duress. Con
 
 This seems to work decently in most circumstances, but the API is very ugly; it needs massive cleanup and documentation improvements. Use at your own risk.
 
+Special thanks to [Barry T. Smith](https://twitter.com/thebarrytone) for the [excellent name](http://motherfuckingwebsite.com)
+
 ## TODO
 
 <small>(in rough order of importance)</small>
