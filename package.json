@@ -1,0 +1,37 @@
+{
+  "name": "parallaxative",
+  "version": "0.2.0",
+  "description": "Utilities to run code based on the viewport position of an HTML element",
+  "main": "parallaxative.js",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/75th/parallaxative.git"
+  },
+  "keywords": [
+    "parallax"
+  ],
+  "author": "Lanny Heidbreder",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/75th/parallaxative#readme",
+  "devDependencies": {
+    "babel-minify": "^0.3.0",
+    "babel-minify-webpack-plugin": "^0.3.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-es2015-ie": "^6.7.0",
+    "eslint": "^4.17.0",
+    "eslint-loader": "^1.9.0",
+    "script-loader": "^0.7.2",
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.26.0",
+    "uglify-loader": "^2.0.0"
+  }
+}

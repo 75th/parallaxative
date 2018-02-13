@@ -7,8 +7,25 @@
 		"uuidString": "707292DB-D6E0-4A9E-B1BC-12A2A27FF136"
 		}
 	],
-"creatorBuild": "26148",
+"creatorBuild": "26261",
 "files": {
+	"\/.eslintrc.js": {
+		"ft": 64,
+		"ma": 0,
+		"mi": 1,
+		"oA": 0,
+		"oAP": "\/min\/.eslintrc-min.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
+		},
+	"\/.gitignore": {
+		"cB": 0,
+		"ft": 8192,
+		"oA": 0,
+		"oAP": "\/.gitignore",
+		"oF": 0
+		},
 	"\/demo\/bgimg.jpg": {
 		"ft": 16384,
 		"iS": 1205371,
@@ -83,32 +100,61 @@
 		"oAP": "\/demo\/index.html",
 		"oF": 0
 		},
-	"\/parallaxative.js": {
-		"ft": 64,
-		"ma": 1,
-		"mi": 1,
-		"oA": 0,
-		"oAP": "\/parallaxative.min.js",
-		"oF": 2,
-		"sC": 3,
-		"tS": 1
-		},
-	"\/parallaxative.min.js": {
+	"\/dist\/parallaxative.es5.min.js": {
 		"ft": 64,
 		"ma": 0,
 		"mi": 1,
 		"oA": 0,
-		"oAP": "\/min\/parallaxative.min-min.js",
+		"oAP": "\/dist\/min\/parallaxative.es5.min-min.js",
 		"oF": 0,
 		"sC": 1,
 		"tS": 0
 		},
-	"\/parallaxative.min.js.map": {
+	"\/dist\/parallaxative.es5.min.js.map": {
 		"cB": 0,
 		"ft": 8192,
 		"oA": 0,
-		"oAP": "\/parallaxative.min.js.map",
+		"oAP": "\/dist\/parallaxative.es5.min.js.map",
 		"oF": 0
+		},
+	"\/dist\/parallaxative.es7.min.js": {
+		"ft": 64,
+		"ma": 0,
+		"mi": 1,
+		"oA": 0,
+		"oAP": "\/dist\/min\/parallaxative.es7.min-min.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
+		},
+	"\/dist\/parallaxative.es7.min.js.map": {
+		"cB": 0,
+		"ft": 8192,
+		"oA": 0,
+		"oAP": "\/dist\/parallaxative.es7.min.js.map",
+		"oF": 0
+		},
+	"\/node_modules": {
+		"ft": 65536,
+		"oA": 2,
+		"oAP": "\/build\/node_modules",
+		"oF": 0
+		},
+	"\/package-lock.json": {
+		"ft": 524288,
+		"oA": 1,
+		"oAP": "\/package-lock-min.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
+		},
+	"\/package.json": {
+		"ft": 524288,
+		"oA": 1,
+		"oAP": "\/package-min.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
 		},
 	"\/readme.md": {
 		"cB": 0,
@@ -127,6 +173,26 @@
 		"pME": 1,
 		"rFN": 0,
 		"uCM": 0
+		},
+	"\/src\/parallaxative.js": {
+		"ft": 64,
+		"ma": 1,
+		"mi": 1,
+		"oA": 1,
+		"oAP": "\/parallaxative.min.js",
+		"oF": 3,
+		"sC": 3,
+		"tS": 1
+		},
+	"\/webpack.config.js": {
+		"ft": 64,
+		"ma": 0,
+		"mi": 1,
+		"oA": 0,
+		"oAP": "\/min\/webpack.config-min.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
 		}
 	},
 "hooks": [
@@ -158,10 +224,10 @@
 	"babelAuxiliaryCommentBefore": "",
 	"babelConfigFileHandlingType": 0,
 	"babelCustomPluginsList": "",
-	"babelCustomPresetsList": "",
+	"babelCustomPresetsList": "babel-preset-es2015-ie",
 	"babelInsertModuleIDs": 0,
 	"babelModuleID": "",
-	"babelNoComments": 0,
+	"babelNoComments": 1,
 	"babelPlugins": {
 		"async-generator-functions": {
 			"active": 0
@@ -717,6 +783,10 @@
 		"id-match": {
 			"active": 0,
 			"optionString": "'^[a-z]+([A-Z][a-z]+)*$', {'properties': false, 'onlyDeclarations': true}"
+			},
+		"implicit-arrow-linebreak": {
+			"active": 0,
+			"optionString": "'beside'"
 			},
 		"indent": {
 			"active": 0,
@@ -1539,7 +1609,7 @@
 	"externalServerAddress": "http:\/\/localhost:8888",
 	"gitIgnoreBuildFolder": 1,
 	"hideConfigFile": 0,
-	"jsCheckerReservedNamesString": "ScrollDetector, ScrollAnimation, ScrollAnimationValueSet, ParallaxativeAnimation",
+	"jsCheckerReservedNamesString": "ScrollDetector,ScrollTrigger,ScrollAnimation,ScrollAnimationValueSet,ParallaxAnimation,ParallaxAnimationValueSet",
 	"jsHintFlags2": {
 		"asi": {
 			"active": 0,

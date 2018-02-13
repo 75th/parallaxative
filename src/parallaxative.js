@@ -39,7 +39,7 @@ class ScrollDetector {
 
 	updateResizeProperties() {
 		this.rect = this.scrollTarget.getBoundingClientRect();
-		this.documentOffsets = {top: this.rect.top + this.constructor.getVerticalScroll(), left: this.rect.left + this.constructor.getHorizontalScroll() }
+		this.documentOffsets = {top: this.rect.top + this.constructor.getVerticalScroll(), left: this.rect.left + this.constructor.getHorizontalScroll() };
 		this.windowSizes = { width: window.innerWidth, height: window.innerHeight };
 	}
 
@@ -52,7 +52,7 @@ class ScrollDetector {
 	 * @return {float}
 	 */
 	relativeScrollPosition() {
-		var offset, size, windowSize, scrollPos;
+		var offset, size, windowSize, scrollPos, zeroPoint, completePoint;
 
 		if(this.scrollIsVertical) {
 			scrollPos = this.constructor.getVerticalScroll();
@@ -67,8 +67,8 @@ class ScrollDetector {
 			windowSize = this.windowSizes.width;
 		}
 
-		var zeroPoint = offset - windowSize;
-		var completePoint = offset + size;
+		zeroPoint = offset - windowSize;
+		completePoint = offset + size;
 		return (scrollPos - zeroPoint) / (completePoint - zeroPoint);
 	}
 
@@ -135,7 +135,7 @@ class ScrollTrigger {
 				el.classList.remove('offscreen');
 			},
 			triggerOnDeactivate: true
-		}
+		};
 
 		options = Object.assign({}, defaultOptions, options);
 
@@ -272,7 +272,7 @@ class ScrollAnimationValueSet {
 	}
 
 	getCSSValue(scrollPosition) {
-		return this.valueFormat.replace(this.substitutionString, ((this.endValue - this.startValue) * scrollPosition + this.startValue).toString() + this.unit)
+		return this.valueFormat.replace(this.substitutionString, ((this.endValue - this.startValue) * scrollPosition + this.startValue).toString() + this.unit);
 	}
 }
 
@@ -410,7 +410,7 @@ class ScrollAnimation {
 		if(this.removePropertiesOnReset) {
 			this.animateTargets.forEach(animateTarget => {
 				this.properties.forEach(property => {
-					animateTarget.style.removeProperty(property)
+					animateTarget.style.removeProperty(property);
 				});
 			});
 		} else {
@@ -466,6 +466,12 @@ class ScrollAnimation {
 		} else {
 			this.deactivate();
 		}
+	}
+
+	static isIE() {
+		return (
+			(navigator.appName === 'Microsoft Internet Explorer') || ((navigator.appName === 'Netscape') && (new RegExp('Trident/.*rv:([0-9]{1,}[.0-9]{0,})').exec(navigator.userAgent) !== null))
+		);
 	}
 }
 
@@ -543,7 +549,7 @@ class ParallaxAnimation extends ScrollAnimation {
 	 */
 	init() {
 		var xDimensions = { size: 'width', Size: 'Width', offset: 'left' };
-		var yDimensions = { size: 'height', Size: 'Height', offset: 'top' }
+		var yDimensions = { size: 'height', Size: 'Height', offset: 'top' };
 		this.dimensions =  this.scrollDetector.scrollIsVertical ? yDimensions : xDimensions;
 
 		this.updateResizeProperties();
@@ -559,7 +565,7 @@ class ParallaxAnimation extends ScrollAnimation {
 			animateTarget.classList.add('parallax-animated');
 		});
 
-		this.scrollDetector.scrollTarget.classList.add('parallax-container')
+		this.scrollDetector.scrollTarget.classList.add('parallax-container');
 	}
 
 	/**
@@ -627,6 +633,16 @@ class ParallaxAnimation extends ScrollAnimation {
 		}
 
 		this.ticking = true;
+	}
+
+	reset() {
+		super.reset();
+		var i;
+		var length = this.animateTargets.length;
+
+		for(i = 0; i < length; i++) {
+			this.animateTargets[i].style.removeProperty('height');
+		}
 	}
 }
 
