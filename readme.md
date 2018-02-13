@@ -8,20 +8,20 @@ Special thanks to [Barry T. Smith](https://twitter.com/thebarrytone) for the [ex
 
 ## TODO
 
-<small>(in rough order of importance)</small>
+(*roughly in order of importance*)
 
-- Add necessary default CSS for `ParallaxAnimation`s
-- Document all classes extensively in code and in readme
-- Accept strings/dicts everywhere objects are now required
+- [ ] Add necessary default CSS for `ParallaxAnimation`s
+- [ ] Document all classes extensively in code and in readme
+- [ ] Accept strings/dicts everywhere objects are now required
     - Accept a media query string instead of a MediaQueryList object
     - Accept a dict with options instead of an object already instantiated
       with those options
     - *Et cetera*
-- Accept single objects everywhere arrays of objects are now required
-- Disable `ParallaxAnimation`s in IE by default?
-- Clean up or eliminate the `AnimationValueSet` classes
+- [ ] Accept single objects everywhere arrays of objects are now required
+- [ ] Disable `ParallaxAnimation`s in IE by default?
+- [ ] Clean up or eliminate the `AnimationValueSet` classes
     - If not eliminate, then maybe add `ParallaxAnimationValueSet.prototype.getCSSValue()`? I can't remember at the moment whether it makes sense to do that
-- Substantially improve the power and flexibility of the `ScrollTrigger` class
-- Implement `startPosition` and `endPosition` options in `ScrollAnimation`
-- Enhance  `ScrollDetector.prototype.relativeScrollPosition()` to base the `0` and `1` points at places other than immediately before/after the element scrolls onto/off the screen
+- [ ] Substantially improve the power and flexibility of the `ScrollTrigger` class
+- [ ] Implement `startPosition` and `endPosition` options in `ScrollAnimation`
+- [ ] Enhance  `ScrollDetector.prototype.relativeScrollPosition()` to base the `0` and `1` points at places other than immediately before/after the element scrolls onto/off the screen
     - Enhance `ScrollAnimation` and `ScrollTrigger` to allow the above

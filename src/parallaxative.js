@@ -548,9 +548,11 @@ class ParallaxAnimation extends ScrollAnimation {
 	 * @return {void}
 	 */
 	init() {
-		var xDimensions = { size: 'width', Size: 'Width', offset: 'left' };
-		var yDimensions = { size: 'height', Size: 'Height', offset: 'top' };
-		this.dimensions =  this.scrollDetector.scrollIsVertical ? yDimensions : xDimensions;
+		this.dimensions =
+			this.scrollDetector.scrollIsVertical ?
+			{ size: 'height', Size: 'Height', offset: 'top' } :
+			{ size: 'width', Size: 'Width', offset: 'left' }
+		;
 
 		this.updateResizeProperties();
 
