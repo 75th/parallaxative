@@ -1,3 +1,9 @@
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+
+const extractSass = new ExtractTextPlugin({
+    filename: "[name].css"
+});
+
 module.exports = [
 	{
 		entry: {
@@ -35,7 +41,46 @@ module.exports = [
 	},
 	{
 		entry: {
-			'dist/parallaxative': './src/parallaxative.js?es5',
+			'demo/demo': './demo/demo.scss'
+		},
+		output: {
+			filename: '[name].css',
+			path: __dirname
+		},
+		devtool: 'source-map',
+		module: {
+			rules: [
+				{
+					test: /\.scss/,
+					exclude: /node_modules/,
+					use: extractSass.extract({
+						use: [
+							{
+								loader: 'css-loader',
+								options: {
+									sourceMap: true,
+									url: false
+								}
+							},
+							{
+								loader: 'sass-loader',
+								options: {
+									sourceMap: true
+								}
+							}
+						]
+					})
+				}
+			]
+		},
+		externals: {
+			images: /\.(gif|jpg|jpeg|png)$/
+		},
+		plugins: [ extractSass ]
+	},
+	{
+		entry: {
+			'dist/parallaxative': './src/parallaxative.js?es5'
 		},
 		output: {
 			filename: '[name].min.js',
