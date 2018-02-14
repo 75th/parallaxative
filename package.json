@@ -1,6 +1,6 @@
 {
   "name": "parallaxative",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Utilities to run code based on the viewport position of an HTML element",
   "main": "src/parallaxative.js",
   "scripts": {
