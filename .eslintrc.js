@@ -9,15 +9,16 @@ module.exports = {
     },
     "rules": {
         "indent": [
-            "error",
-            "tab"
+            "warn",
+            "tab",
+            { "ignoredNodes": ["ConditionalExpression"] }
         ],
         "linebreak-style": [
             "error",
             "unix"
         ],
         "quotes": [
-            "error",
+            "warn",
             "single"
         ],
         "semi": [
