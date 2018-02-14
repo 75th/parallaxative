@@ -12,7 +12,7 @@ Special thanks to [Barry T. Smith](https://twitter.com/thebarrytone) for the [ex
 
 The classes are *kind of* documented in the module file; friendlier documentation here is on my TODO list.
 
-`/demo/demo.js` has very basic examples of how to use `ScrollAnimation` and `ParallaxAnimation`. Again, the API is super ugly; see the TODO below to get an idea of the improvements I want to make.
+`/demo/demo.js` has very basic examples of how to use `ScrollAnimation` and `ParallaxAnimation`. Again, the API is super ugly; see the [issue queue](https://github.com/75th/parallaxative/issues) to get an idea of the improvements I want to make.
 
 ### Development and demo
 
@@ -51,26 +51,3 @@ Manages the CSS values for a `ParallaxAnimation`.
 ### `ParallaxAnimation`
 
 A subclass of `ScrollAnimation` for the special case of a background element that needs to scroll at a precise factor of the speed at which the page is being scrolled. Handles proper sizing of the background element.
-
-
-## TODO
-
-(*roughly in order of importance*)
-
-- [ ] Add necessary default CSS for `ParallaxAnimation`s
-- [ ] Document all classes extensively in code and in readme
-- [ ] Accept strings/dicts everywhere objects are now required
-    - Accept a media query string instead of a MediaQueryList object
-    - Accept a dict with options instead of an object already instantiated
-      with those options
-    - *Et cetera*
-- [ ] Accept single objects everywhere arrays of objects are now required
-- [ ] Disable `ParallaxAnimation`s in IE by default?
-- [ ] Clean up or eliminate the `AnimationValueSet` classes
-    - If not eliminate, then maybe add `ParallaxAnimationValueSet.prototype.getCSSValue()`? I can't remember at the moment whether it makes sense to do that
-- [ ] Substantially improve the power and flexibility of the `ScrollTrigger` class
-- [ ] Implement `startPosition` and `endPosition` options in `ScrollAnimation`
-- [ ] Enhance  `ScrollDetector.prototype.relativeScrollPosition()` to base the `0` and `1` points at places other than immediately before/after the element scrolls onto/off the screen
-    - Enhance `ScrollAnimation` and `ScrollTrigger` to allow the above
-- [ ] Conditionally accept CSS versions of style property names
-- [ ] Conditionally autoprefix CSS/JS style property names
