@@ -14,6 +14,10 @@ The classes are *kind of* documented in the module file; friendlier documentatio
 
 `/demo/demo.js` has very basic examples of how to use `ScrollAnimation` and `ParallaxAnimation`. Again, the API is super ugly; see the TODO below to get an idea of the improvements I want to make.
 
+### Development and demo
+
+`npm install`, as always. Then `npm run build` to compile changes, or `npm run demo` to launch the demo page.
+
 ## Included classes
 
 ### `ScrollDetector`
