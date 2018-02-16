@@ -107,5 +107,37 @@ module.exports = [
 				}
 			]
 		}
-	}
+	},
+	{
+		entry: {
+			'dist/parallaxative': './src/parallaxative.css'
+		},
+		output: {
+			filename: '[name].css',
+			path: __dirname
+		},
+		module: {
+			rules: [
+				{
+					test: /\.css/,
+					exclude: /node_modules/,
+					use: extractSass.extract({
+						use: [
+							{
+								loader: 'css-loader',
+								options: {
+									sourceMap: false,
+									url: false
+								}
+							}
+						]
+					})
+				}
+			]
+		},
+		externals: {
+			images: /\.(gif|jpg|jpeg|png)$/
+		},
+		plugins: [ extractSass ]
+	},
 ];
