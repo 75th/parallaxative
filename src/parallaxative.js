@@ -1,3 +1,23 @@
+class ParallaxativeException {
+	constructor(throwingClass, type = 'generic', data = {}) {
+		this.throwingClass = throwingClass;
+		this.type = type;
+		this.data = data;
+
+		switch (true) {
+			case (throwingClass === ParallaxAnimationValueSet && type === 'divideByZero'):
+				console.error('scrollPixelsPerParallaxPixel must not be zero.');
+				break;
+			case(throwingClass === ParallaxAnimation && type === 'overlyNestedAnimateTarget'):
+				console.error('Parallax animateTarget %o is nested too many levels beneath scrollTarget %o. The animateTarget must be a direct child of the scrollTarget.', data.animateTarget, data.scrollTarget);
+				break;
+			default:
+				console.error('Error in Parallaxative class %o of type %o with data %o.', throwingClass, type, data);
+				break;
+		}
+	}
+}
+
 /**
  * Track the relative position of an element as it scrolls by.
  */
@@ -424,6 +444,13 @@ class ScrollAnimation {
 
 			this.setCSS(cssValues);
 		}
+
+		var i;
+		var length = this.animateTargets.length;
+
+		for(i = 0; i < length; i++) {
+			this.animateTargets[i].classList.remove('scroll-animated');
+		}
 	}
 
 	/**
@@ -507,7 +534,7 @@ class ParallaxAnimationValueSet {
 		});
 
 		if(this.scrollPixelsPerParallaxPixel === 0) {
-			throw 'scrollPixelsPerParallaxPixel must not be zero.';
+			throw new ParallaxativeException(this.constructor, 'divideByZero');
 		}
 	}
 }
@@ -558,16 +585,38 @@ class ParallaxAnimation extends ScrollAnimation {
 
 		super.init();
 
+		this.scrollDetector.scrollTarget.classList.add('parallax-container');
+
 		window.addEventListener('load', () => {
 			this.updateResizeCSS();
 			this.updateCSS();
 		});
 
-		this.animateTargets.forEach(animateTarget => {
-			animateTarget.classList.add('parallax-animated');
-		});
+		var i;
+		var target;
+		var length = this.animateTargets.length;
 
-		this.scrollDetector.scrollTarget.classList.add('parallax-container');
+		try {
+			for(i = 0; i < length; i++) {
+				target = this.animateTargets[i];
+
+				target.classList.add('parallax-animated');
+
+				if(target.parentNode !== this.scrollDetector.scrollTarget) {
+					throw new ParallaxativeException(this.constructor, 'overlyNestedAnimateTarget', {index: i, animateTarget: target, scrollTarget: this.scrollDetector.scrollTarget });
+				}
+			}
+		} catch(err) {
+			this.deactivate();
+
+			this.animateTargets = this.animateTargets.filter((target) => {
+				target !== err.animateTarget;
+			});
+
+			if(this.animateTargets.length) {
+				this.activate();
+			}
+		}
 	}
 
 	/**
@@ -638,13 +687,18 @@ class ParallaxAnimation extends ScrollAnimation {
 	}
 
 	reset() {
-		super.reset();
 		var i;
 		var length = this.animateTargets.length;
 
 		for(i = 0; i < length; i++) {
 			this.animateTargets[i].style.removeProperty('height');
+			this.animateTargets[i].classList.remove('parallax-animated');
+			this.animateTargets[i].parentNode.classList.remove('parallax-anchor');
 		}
+
+		super.reset();
+
+		this.scrollDetector.scrollTarget.classList.remove('parallax-container');
 	}
 }
 
