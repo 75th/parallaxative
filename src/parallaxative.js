@@ -9,7 +9,7 @@ class ParallaxativeException {
 				console.error('scrollPixelsPerParallaxPixel must not be zero.');
 				break;
 			case(throwingClass === ParallaxAnimation && type === 'overlyNestedAnimateTarget'):
-				console.error('Parallax animateTarget %o is nested too many levels beneath scrollTarget %o. The scrollTarget must be a child or grandchild of the animateTarget.', data.animateTarget, data.scrollTarget);
+				console.error('Parallax animateTarget %o is nested too many levels beneath scrollTarget %o. The animateTarget must be a direct child of the scrollTarget.', data.animateTarget, data.scrollTarget);
 				break;
 			default:
 				console.error('Error in Parallaxative class %o of type %o with data %o.', throwingClass, type, data);
@@ -593,40 +593,28 @@ class ParallaxAnimation extends ScrollAnimation {
 		});
 
 		var i;
+		var target;
 		var length = this.animateTargets.length;
 
-		for(i = 0; i < length; i++) {
-			try {
-				((target) => {
-					var anchor;
+		try {
+			for(i = 0; i < length; i++) {
+				target = this.animateTargets[i];
 
-					target.classList.add('parallax-animated');
+				target.classList.add('parallax-animated');
 
-					if(
-						target.parentNode !== this.scrollDetector.scrollTarget &&
-						target.parentNode.parentNode !== this.scrollDetector.scrollTarget
-					) {
-						throw new ParallaxativeException(this.constructor, 'overlyNestedAnimateTarget', {index: i, animateTarget: target, scrollTarget: this.scrollDetector.scrollTarget });
-					}
-
-					if(target.parentNode.children.length !== 1) {
-						anchor = document.createElement('div');
-						target.parentNode.insertBefore(anchor, target);
-						anchor.appendChild(target);
-					}
-
-					target.parentNode.classList.add('parallax-anchor');
-				})(this.animateTargets[i], i);
-			} catch(err) {
-				this.deactivate();
-
-				this.animateTargets = this.animateTargets.filter((target) => {
-					target !== err.animateTarget;
-				});
-
-				if(this.animateTargets.length) {
-					this.activate();
+				if(target.parentNode !== this.scrollDetector.scrollTarget) {
+					throw new ParallaxativeException(this.constructor, 'overlyNestedAnimateTarget', {index: i, animateTarget: target, scrollTarget: this.scrollDetector.scrollTarget });
 				}
+			}
+		} catch(err) {
+			this.deactivate();
+
+			this.animateTargets = this.animateTargets.filter((target) => {
+				target !== err.animateTarget;
+			});
+
+			if(this.animateTargets.length) {
+				this.activate();
 			}
 		}
 	}

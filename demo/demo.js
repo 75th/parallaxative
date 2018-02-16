@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		),
 
 		new Px.ParallaxAnimation(
-			[document.querySelector('blockquote .bg > div')],
+			[document.querySelector('blockquote .bg')],
 			window.scrollDetectors[1],
 			{},
 			[
