@@ -1,3 +1,28 @@
+function validateOptions(options, callingClass) {
+	if(typeof options.activeMediaQueryList !== 'undefined') {
+		if(typeof options.activeMediaQueryList === 'string' && options.activeMediaQueryList) {
+			options.activeMediaQueryList = window.matchMedia(options.activeMediaQueryList);
+		} else if (!(options.activeMediaQueryList instanceof MediaQueryList)) {
+			throw new ParallaxativeException(callingClass, 'badActiveMediaQueryList');
+		}
+	}
+
+	if(typeof options.properties === 'string') {
+		options.properties = [ options.properties ];
+	}
+
+	if(
+		typeof options.valueSets === 'object' && (
+			options.valueSets instanceof ScrollAnimationValueSet ||
+			options.valueSets instanceof ParallaxAnimationValueSet
+		)
+	) {
+		options.valueSets = [ options.valueSets ];
+	}
+
+	return options;
+}
+
 class ParallaxativeException {
 	constructor(throwingClass, type = 'generic', data = {}) {
 		this.throwingClass = throwingClass;
@@ -5,10 +30,19 @@ class ParallaxativeException {
 		this.data = data;
 
 		switch (true) {
+			case (throwingClass === ScrollDetector && type === 'badScrollTarget'):
+				console.error('scrollTarget must be a query selector string or an HTMLElement node.');
+				break;
+			case (throwingClass === ScrollDetector && type === 'scrollTargetNull'):
+				console.error('scrollTarget query selector string did not match any elements.');
+				break;
+			case (type === 'badActiveMediaQueryList'):
+				console.error('activeMediaQueryList, if provided at all, must be either a media query string or a MediaQueryList instance.');
+				break;
 			case (throwingClass === ParallaxAnimationValueSet && type === 'divideByZero'):
 				console.error('scrollPixelsPerParallaxPixel must not be zero.');
 				break;
-			case(throwingClass === ParallaxAnimation && type === 'overlyNestedAnimateTarget'):
+			case (throwingClass === ParallaxAnimation && type === 'overlyNestedAnimateTarget'):
 				console.error('Parallax animateTarget %o is nested too many levels beneath scrollTarget %o. The animateTarget must be a direct child of the scrollTarget.', data.animateTarget, data.scrollTarget);
 				break;
 			default:
@@ -38,11 +72,25 @@ class ScrollDetector {
 			scrollIsVertical: true
 		};
 
-		this.scrollTarget = scrollTarget;
+		try {
+			if(typeof scrollTarget === 'string') {
+				this.scrollTarget = document.querySelector(scrollTarget);
+
+				if(!this.scrollTarget) {
+					throw new ParallaxativeException(this.constructor, 'scrollTargetNull');
+				}
+			} else if (typeof scrollTarget === 'object' && scrollTarget instanceof HTMLElement) {
+				this.scrollTarget = scrollTarget;
+			} else {
+				throw new ParallaxativeException(this.constructor, 'badScrollTarget');
+			}
+		} catch(e) {
+			return;
+		}
 
 		options = Object.assign({}, defaultOptions, options);
 
-		Object.getOwnPropertyNames(options).forEach(name => {
+		Object.getOwnPropertyNames(defaultOptions).forEach(name => {
 			this[name] = options[name];
 		});
 
@@ -156,6 +204,8 @@ class ScrollTrigger {
 			},
 			triggerOnDeactivate: true
 		};
+
+		options = validateOptions(options, this.constructor);
 
 		options = Object.assign({}, defaultOptions, options);
 
@@ -304,27 +354,26 @@ class ScrollAnimation {
 	 * Constructor.
 	 *
 	 * @param {array<HTMLElement>} animateTargets
-	 *     The elements to animate based on the scroll position of the ScrollDetector
+	 *     The elements to animate based on the scroll position of the ScrollDetector. May also be a single bare HTMLElement
+	 *         or a query selector string
 	 *
 	 * @param {ScrollDetector} scrollDetector
 	 *
 	 * @param {object} options
 	 *     Other options that may be omitted to use default values
 	 *         {array<string>} properties: The JavaScript CSS property names to modify
+	 *         {array<ScrollAnimationValueSet>} valueSets: Configuration for one or more values to be modified within a single CSS rule
 	 *         {string} valueSetSeparator: String on which to join the different CSS values for this rule
 	 *         {bool} removePropertiesOnReset: Whether to unset the CSS properties altogether on deactivation,
 	 *             instead of setting them to the resetValue
 	 *         {MediaQueryList} activeMediaQueryList: The MediaQueryList controlling activation and deactivation of this object
 	 *         {bool} activateImmediately: Whether to turn on the animation immediately upon construction.
 	 *             (Even if true, the animation will not activate if activeMediaQueryList.matches is false.)
-	 *
-	 * @param {array<ScrollAnimationValueSet>} valueSets
-	 *     Configuration for one or more values to be used in the single CSS rule
-	 *     this object manages.
 	 */
-	constructor(animateTargets, scrollDetector, options, valueSets = [ new ScrollAnimationValueSet() ]) {
+	constructor(animateTargets, scrollDetector, options) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
+			valueSets: [ new ScrollAnimationValueSet() ],
 			valueSetSeparator: ' ',
 			removePropertiesOnReset: true,
 			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
@@ -333,15 +382,35 @@ class ScrollAnimation {
 			endPosition: 1 // FIXME: Not implemented
 		};
 
+		if(typeof options !== 'undefined') {
+			options = validateOptions(options, this.constructor);
+		}
+
 		options = Object.assign({}, defaultOptions, options);
 
-		Object.getOwnPropertyNames(options).forEach(name => {
+		if(animateTargets instanceof HTMLElement) {
+			animateTargets = [animateTargets];
+		} else if(typeof animateTargets === 'string') {
+			animateTargets = [ document.querySelector(animateTargets) ];
+		}
+
+		Object.getOwnPropertyNames(defaultOptions).forEach(name => {
 			this[name] = options[name];
 		});
 
+		// Syntax sugar for scrollDetector
+		if(scrollDetector instanceof HTMLElement) { // Allow passing bare DOM node
+			scrollDetector = new ScrollDetector(scrollDetector);
+		} else if(typeof scrollDetector === 'string') { // Allow passing query selector string
+			scrollDetector = new ScrollDetector(document.querySelector(scrollDetector));
+		} else if(typeof scrollDetector === 'undefined') { // Allow passing nothing
+			scrollDetector = new ScrollDetector(animateTargets[0].parentNode);
+		} else if(typeof scrollDetector === 'object') { // Allow passing ScrollDetector's options instead of scrollTarget
+			scrollDetector = new ScrollDetector(animateTargets[0].parentNode, scrollDetector);
+		}
+
 		this.animateTargets = animateTargets;
 		this.scrollDetector = scrollDetector;
-		this.valueSets = valueSets;
 		this.listeners = [];
 		this.ticking = false;
 		this.activated = false;
@@ -529,7 +598,7 @@ class ParallaxAnimationValueSet {
 
 		options = Object.assign({}, defaultOptions, options);
 
-		Object.getOwnPropertyNames(options).forEach(name => {
+		Object.getOwnPropertyNames(defaultOptions).forEach(name => {
 			this[name] = options[name];
 		});
 
@@ -566,6 +635,14 @@ class ParallaxAnimation extends ScrollAnimation {
 	 *     this object manages.
 	 */
 	constructor(animateTargets, scrollDetector, options, valueSets = [ new ParallaxAnimationValueSet ]) {
+		if(typeof options === 'undefined') {
+			options = {};
+		}
+
+		if(typeof options.valueSets === 'undefined') {
+			options.valueSets = [ new ParallaxAnimationValueSet() ];
+		}
+
 		super(animateTargets, scrollDetector, options, valueSets);
 	}
 
