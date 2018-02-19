@@ -73,7 +73,7 @@ class ScrollDetector {
 		};
 
 		try {
-			if(typeof scrollTarget === 'string') {
+			if(typeof scrollTarget === 'string') { // Allow passing bare DOM node
 				this.scrollTarget = document.querySelector(scrollTarget);
 
 				if(!this.scrollTarget) {
@@ -388,9 +388,10 @@ class ScrollAnimation {
 
 		options = Object.assign({}, defaultOptions, options);
 
-		if(animateTargets instanceof HTMLElement) {
+		// Syntax sugar for animateTargets
+		if(animateTargets instanceof HTMLElement) { // Allow passing bare DOM node
 			animateTargets = [animateTargets];
-		} else if(typeof animateTargets === 'string') {
+		} else if(typeof animateTargets === 'string') { // Allow passing query selector string
 			animateTargets = [ document.querySelector(animateTargets) ];
 		}
 
