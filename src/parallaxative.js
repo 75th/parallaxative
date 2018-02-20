@@ -23,6 +23,10 @@ function validateOptions(options, callingClass) {
 	return options;
 }
 
+function optionsAreForScrollDetector(options) {
+	return typeof options.scrollIsVertical !== 'undefined';
+}
+
 class ParallaxativeException {
 	constructor(throwingClass, type = 'generic', data = {}) {
 		this.throwingClass = throwingClass;
@@ -38,6 +42,9 @@ class ParallaxativeException {
 				break;
 			case (type === 'badActiveMediaQueryList'):
 				console.error('activeMediaQueryList, if provided at all, must be either a media query string or a MediaQueryList instance.');
+				break;
+			case (type === 'duplicateOptions'):
+				console.error('ScrollAnimation’s second parameter looked like it was options for ScrollAnimation, but other options were provided in the third parameter. If the third parameter is present, the second parameter must pertain to a ScrollDetector.');
 				break;
 			case (throwingClass === ParallaxAnimationValueSet && type === 'divideByZero'):
 				console.error('scrollPixelsPerParallaxPixel must not be zero.');
@@ -370,10 +377,10 @@ class ScrollAnimation {
 	 *         {bool} activateImmediately: Whether to turn on the animation immediately upon construction.
 	 *             (Even if true, the animation will not activate if activeMediaQueryList.matches is false.)
 	 */
-	constructor(animateTargets, scrollDetector, options) {
+	constructor(animateTargets, scrollDetector, options, defaultValueSets) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
-			valueSets: [ new ScrollAnimationValueSet() ],
+			valueSets: defaultValueSets ? defaultValueSets : [ new ScrollAnimationValueSet() ],
 			valueSetSeparator: ' ',
 			removePropertiesOnReset: true,
 			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
@@ -382,22 +389,12 @@ class ScrollAnimation {
 			endPosition: 1 // FIXME: Not implemented
 		};
 
-		if(typeof options !== 'undefined') {
-			options = validateOptions(options, this.constructor);
-		}
-
-		options = Object.assign({}, defaultOptions, options);
-
 		// Syntax sugar for animateTargets
 		if(animateTargets instanceof HTMLElement) { // Allow passing bare DOM node
 			animateTargets = [animateTargets];
 		} else if(typeof animateTargets === 'string') { // Allow passing query selector string
 			animateTargets = [ document.querySelector(animateTargets) ];
 		}
-
-		Object.getOwnPropertyNames(defaultOptions).forEach(name => {
-			this[name] = options[name];
-		});
 
 		// Syntax sugar for scrollDetector
 		if(scrollDetector instanceof HTMLElement) { // Allow passing bare DOM node
@@ -406,9 +403,28 @@ class ScrollAnimation {
 			scrollDetector = new ScrollDetector(document.querySelector(scrollDetector));
 		} else if(typeof scrollDetector === 'undefined') { // Allow passing nothing
 			scrollDetector = new ScrollDetector(animateTargets[0].parentNode);
-		} else if(typeof scrollDetector === 'object') { // Allow passing ScrollDetector's options instead of scrollTarget
-			scrollDetector = new ScrollDetector(animateTargets[0].parentNode, scrollDetector);
+		} else if(typeof scrollDetector === 'object') { // Allow passing ScrollDetector's OR ScrollAnimation's options
+			if(optionsAreForScrollDetector(scrollDetector)) {
+				scrollDetector = new ScrollDetector(animateTargets[0].parentNode, scrollDetector);
+			} else { // Options are for ScrollAnimation or ParallaxAnimation
+				if(typeof options === 'undefined') {
+					options = scrollDetector;
+					scrollDetector = new ScrollDetector(animateTargets[0].parentNode);
+				} else {
+					throw new ParallaxativeException(this.constructor, 'duplicateOptions');
+				}
+			}
 		}
+
+		if(typeof options !== 'undefined') {
+			options = validateOptions(options, this.constructor);
+		}
+
+		options = Object.assign({}, defaultOptions, options);
+
+		Object.getOwnPropertyNames(defaultOptions).forEach(name => {
+			this[name] = options[name];
+		});
 
 		this.animateTargets = animateTargets;
 		this.scrollDetector = scrollDetector;
@@ -635,16 +651,8 @@ class ParallaxAnimation extends ScrollAnimation {
 	 *     Configuration for one or more values to be used in the single CSS rule
 	 *     this object manages.
 	 */
-	constructor(animateTargets, scrollDetector, options, valueSets = [ new ParallaxAnimationValueSet ]) {
-		if(typeof options === 'undefined') {
-			options = {};
-		}
-
-		if(typeof options.valueSets === 'undefined') {
-			options.valueSets = [ new ParallaxAnimationValueSet() ];
-		}
-
-		super(animateTargets, scrollDetector, options, valueSets);
+	constructor(animateTargets, scrollDetector, options) {
+		super(animateTargets, scrollDetector, options, [ new ParallaxAnimationValueSet() ]);
 	}
 
 	/**
