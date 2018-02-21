@@ -1,9 +1,9 @@
-function validateOptions(options, callingClass) {
+function validateOptions(options) {
 	if(typeof options.activeMediaQueryList !== 'undefined') {
 		if(typeof options.activeMediaQueryList === 'string' && options.activeMediaQueryList) {
 			options.activeMediaQueryList = window.matchMedia(options.activeMediaQueryList);
 		} else if (!(options.activeMediaQueryList instanceof MediaQueryList)) {
-			throw new ParallaxativeException(callingClass, 'badActiveMediaQueryList');
+			throw new ParallaxativeException(validateOptions, 'badActiveMediaQueryList');
 		}
 	}
 
@@ -23,37 +23,99 @@ function validateOptions(options, callingClass) {
 	return options;
 }
 
+function normalizeDOMElement(el) {
+	if (el instanceof HTMLElement) {
+		return el;
+	}
+
+	if (typeof el === 'string') {
+		el = document.querySelector(el);
+
+		if(!el) {
+			throw new ParallaxativeException(normalizeDOMElement, 'emptySelectorQuery');
+		}
+
+		return el;
+	}
+
+	throw new ParallaxativeException(normalizeDOMElement, 'badDOMElement');
+}
+
+function normalizeScrollDetector(scrollDetector, defaultScrollTarget) {
+
+	if(!(scrollDetector instanceof ScrollDetector)) {
+		if(typeof scrollDetector === 'undefined' || !scrollDetector) { // Allow passing nothing
+			scrollDetector = new ScrollDetector(defaultScrollTarget);
+		} else if (typeof scrollDetector === 'string' || scrollDetector instanceof HTMLElement) {
+			let scrollTarget = normalizeDOMElement(scrollDetector);
+			scrollDetector = new ScrollDetector(scrollTarget);
+		} else if(typeof scrollDetector === 'object') { // Allow passing ScrollDetector's OR ScrollAnimation's options
+			if(optionsAreForScrollDetector(scrollDetector)) {
+				scrollDetector = new ScrollDetector(defaultScrollTarget, scrollDetector);
+			} else {
+				throw new ParallaxativeException(null, 'optionsNotForScrollDetector', {}, 'none');
+			}
+		}
+	}
+
+	return scrollDetector;
+}
+
 function optionsAreForScrollDetector(options) {
 	return typeof options.scrollIsVertical !== 'undefined';
 }
 
 class ParallaxativeException {
-	constructor(throwingClass, type = 'generic', data = {}) {
-		this.throwingClass = throwingClass;
+	constructor(throwingFunction, type = 'generic', data = {}, level = 'error') {
+		this.throwingFunction = throwingFunction;
 		this.type = type;
 		this.data = data;
 
+		var log;
+
+		if(level === 'none') {
+			log = () => {};
+		} else {
+			// eslint-disable-next-line no-console
+			log = console[level];
+		}
+
 		switch (true) {
-			case (throwingClass === ScrollDetector && type === 'badScrollTarget'):
-				console.error('scrollTarget must be a query selector string or an HTMLElement node.');
+			case (throwingFunction === ScrollDetector && type === 'badScrollTarget'):
+				log('scrollTarget must be a query selector string or an HTMLElement node.');
 				break;
-			case (throwingClass === ScrollDetector && type === 'scrollTargetNull'):
-				console.error('scrollTarget query selector string did not match any elements.');
+			case (throwingFunction === ScrollDetector && type === 'scrollTargetQueryNull'):
+				log('scrollTarget query selector string did not match any elements.');
+				break;
+			case (throwingFunction === ScrollDetector && type === 'scrollTargetEmpty'):
+				log('scrollTarget was not provided or was empty.');
+				break;
+			case (throwingFunction === ScrollTrigger && type === 'noTriggerElement'):
+				log('You must provide ScrollTarget either a scrollDetector or a triggerTarget.');
 				break;
 			case (type === 'badActiveMediaQueryList'):
-				console.error('activeMediaQueryList, if provided at all, must be either a media query string or a MediaQueryList instance.');
+				log('activeMediaQueryList, if provided at all, must be either a media query string or a MediaQueryList instance.');
 				break;
 			case (type === 'duplicateOptions'):
-				console.error('ScrollAnimation’s second parameter looked like it was options for ScrollAnimation, but other options were provided in the third parameter. If the third parameter is present, the second parameter must pertain to a ScrollDetector.');
+				log('ScrollAnimation’s second parameter looked like it was options for ScrollAnimation, but other options were provided in the third parameter. If the third parameter is present, the second parameter must pertain to a ScrollDetector.');
 				break;
-			case (throwingClass === ParallaxAnimationValueSet && type === 'divideByZero'):
-				console.error('scrollPixelsPerParallaxPixel must not be zero.');
+			case (throwingFunction === ParallaxAnimationValueSet && type === 'divideByZero'):
+				log('scrollPixelsPerParallaxPixel must not be zero.');
 				break;
-			case (throwingClass === ParallaxAnimation && type === 'overlyNestedAnimateTarget'):
-				console.error('Parallax animateTarget %o is nested too many levels beneath scrollTarget %o. The animateTarget must be a direct child of the scrollTarget.', data.animateTarget, data.scrollTarget);
+			case (throwingFunction === ParallaxAnimation && type === 'overlyNestedAnimateTarget'):
+				log('Parallax animateTarget %o is nested too many levels beneath scrollTarget %o. The animateTarget must be a direct child of the scrollTarget.', data.animateTarget, data.scrollTarget);
+				break;
+			case (type === 'badDOMElement'):
+				log('A Parallaxative class couldn’t convert your input into an HTMLElement');
+				break;
+			case (type === 'emptySelectorQuery'):
+				log('Your query selector didn’t match any DOM elements.');
+				break;
+			case (type === 'optionsNotForScrollDetector'):
+				log('Options in a scrollDetector parameter were not for a scrollDetector and were not detected to be for something else.');
 				break;
 			default:
-				console.error('Error in Parallaxative class %o of type %o with data %o.', throwingClass, type, data);
+				log('Error in Parallaxative class %o of type %o with data %o.', throwingFunction, type, data);
 				break;
 		}
 	}
@@ -74,25 +136,29 @@ class ScrollDetector {
 	 *
 	 * @todo Track vertical and horizontal position at the same time, and let animations use both simultaneously
 	 */
-	constructor(scrollTarget, options) {
+	constructor(options) {
 		var defaultOptions = {
+			scrollTarget: null,
 			scrollIsVertical: true
 		};
 
-		try {
-			if(typeof scrollTarget === 'string') { // Allow passing bare DOM node
-				this.scrollTarget = document.querySelector(scrollTarget);
+		// Syntax sugar for scrollTarget
+		if(options instanceof HTMLElement) { // Allow providing bare DOM node
+			options = { scrollTarget: options };
+		} else if(typeof options === 'string') { // Allow providing bare query selector
+			options = { scrollTarget: normalizeDOMElement(options) };
+		} else if(!(typeof options.scrollTarget === 'object' && options.scrollTarget instanceof HTMLElement)) {
+			if (typeof options.scrollTarget === 'undefined' || !!options.scrollTarget) {
+				throw new ParallaxativeException(this.constructor, 'scrollTargetEmpty');
+			} else if (typeof options.scrollTarget === 'string') { // Allow passing query selector string
+				options.scrollTarget = document.querySelector(options.scrollTarget);
 
-				if(!this.scrollTarget) {
-					throw new ParallaxativeException(this.constructor, 'scrollTargetNull');
+				if(!options.scrollTarget) {
+					throw new ParallaxativeException(this.constructor, 'scrollTargetQueryNull');
 				}
-			} else if (typeof scrollTarget === 'object' && scrollTarget instanceof HTMLElement) {
-				this.scrollTarget = scrollTarget;
 			} else {
 				throw new ParallaxativeException(this.constructor, 'badScrollTarget');
 			}
-		} catch(e) {
-			return;
 		}
 
 		options = Object.assign({}, defaultOptions, options);
@@ -201,14 +267,32 @@ class ScrollDetector {
  * Run a function based on a ScrollDetector
  */
 class ScrollTrigger {
-	constructor(scrollDetector, options = {}, triggerTarget = scrollDetector.scrollTarget) {
+	constructor(options = {}) {
+		var scrollDetectorIsEmpty = typeof options.scrollDetector === 'undefined' || !!options.scrollDetector;
+		var triggerTargetIsEmpty = typeof options.triggerTarget === 'undefined' || !!options.triggerTarget;
+
+		if(scrollDetectorIsEmpty && triggerTargetIsEmpty) {
+			throw new ParallaxativeException(this.constructor, 'noTriggerElement');
+		}
+
+		if(scrollDetectorIsEmpty) {
+			options.triggerTarget = normalizeDOMElement(options.triggerTarget);
+			options.scrollDetector = new ScrollDetector(options.triggerTarget);
+		} else if (triggerTargetIsEmpty) {
+			options.scrollDetector = normalizeScrollDetector(options.scrollDetector, null);
+			options.triggerTarget = options.scrollDetector.scrollTarget;
+		}
+
+
 		var defaultOptions = {
-			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
 			activateImmediately: true,
-			triggerPosition: 0.15,
+			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
+			scrollDetector: null, // Handled above
 			triggerFunction: function(el) {
 				el.classList.remove('offscreen');
 			},
+			triggerPosition: 0.15,
+			triggerTarget: null, // Handled above
 			triggerOnDeactivate: true
 		};
 
@@ -219,9 +303,6 @@ class ScrollTrigger {
 		Object.getOwnPropertyNames(options).forEach(name => {
 			this[name] = options[name];
 		});
-
-		this.scrollDetector = scrollDetector;
-		this.triggerTarget = triggerTarget;
 
 		this.activeMediaQueryList.addListener(() => {
 			this.respond();
@@ -396,17 +477,10 @@ class ScrollAnimation {
 			animateTargets = [ document.querySelector(animateTargets) ];
 		}
 
-		// Syntax sugar for scrollDetector
-		if(scrollDetector instanceof HTMLElement) { // Allow passing bare DOM node
-			scrollDetector = new ScrollDetector(scrollDetector);
-		} else if(typeof scrollDetector === 'string') { // Allow passing query selector string
-			scrollDetector = new ScrollDetector(document.querySelector(scrollDetector));
-		} else if(typeof scrollDetector === 'undefined') { // Allow passing nothing
-			scrollDetector = new ScrollDetector(animateTargets[0].parentNode);
-		} else if(typeof scrollDetector === 'object') { // Allow passing ScrollDetector's OR ScrollAnimation's options
-			if(optionsAreForScrollDetector(scrollDetector)) {
-				scrollDetector = new ScrollDetector(animateTargets[0].parentNode, scrollDetector);
-			} else { // Options are for ScrollAnimation or ParallaxAnimation
+		try {
+			scrollDetector = normalizeScrollDetector(scrollDetector, animateTargets[0].parentNode, options);
+		} catch(err) {
+			if(err.type === 'optionsNotForScrollDetector') {
 				if(typeof options === 'undefined') {
 					options = scrollDetector;
 					scrollDetector = new ScrollDetector(animateTargets[0].parentNode);
@@ -415,6 +489,7 @@ class ScrollAnimation {
 				}
 			}
 		}
+
 
 		if(typeof options !== 'undefined') {
 			options = validateOptions(options, this.constructor);
