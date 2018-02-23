@@ -62,7 +62,7 @@ function normalizeScrollDetector(scrollDetector, defaultScrollTarget) {
 }
 
 function optionsAreForScrollDetector(options) {
-	return typeof options.scrollIsVertical !== 'undefined';
+	return typeof options.scrollIsVertical !== 'undefined' || typeof options.scrollTarget !== 'undefined';
 }
 
 class ParallaxativeException {
@@ -121,6 +121,29 @@ class ParallaxativeException {
 	}
 }
 
+class ParallaxativeClassOptions {
+	constructor(providedOptions, optionData) {
+		this.providedOptions = providedOptions;
+		this.optionData = optionData;
+
+		optionData;
+	}
+
+	getFinalOptions() {
+		return this.providedOptions;
+	}
+
+	getDefaultOptions() {
+		var defaultOptions = {};
+
+		for(var opt in this.optionData) {
+			defaultOptions[opt] = this.optionData[opt]['default'];
+		}
+
+		return defaultOptions;
+	}
+}
+
 /**
  * Track the relative position of an element as it scrolls by.
  */
@@ -137,10 +160,18 @@ class ScrollDetector {
 	 * @todo Track vertical and horizontal position at the same time, and let animations use both simultaneously
 	 */
 	constructor(options) {
-		var defaultOptions = {
-			scrollTarget: null,
-			scrollIsVertical: true
-		};
+		var optionData = new ParallaxativeClassOptions(options, {
+			scrollTarget: {
+				'default': null,
+				'type': 'html-element'
+			},
+			scrollIsVertical: {
+				'default': true,
+				'type': 'boolean'
+			}
+		});
+
+		var defaultOptions = optionData.getDefaultOptions();
 
 		// Syntax sugar for scrollTarget
 		if(options instanceof HTMLElement) { // Allow providing bare DOM node
