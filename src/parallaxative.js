@@ -88,7 +88,7 @@ class ParallaxativeException {
 				log('scrollTarget query selector string did not match any elements.');
 				break;
 			case (throwingFunction === ScrollDetector && type === 'scrollTargetEmpty'):
-				log('scrollTarget was not provided or was empty.');
+				log('scrollTarget was not provided, was empty, or did not resolve to a DOM element.');
 				break;
 			case (throwingFunction === ScrollTrigger && type === 'noTriggerElement'):
 				log('You must provide ScrollTarget either a scrollDetector or a triggerTarget.');
@@ -121,29 +121,6 @@ class ParallaxativeException {
 	}
 }
 
-class ParallaxativeClassOptions {
-	constructor(providedOptions, optionData) {
-		this.providedOptions = providedOptions;
-		this.optionData = optionData;
-
-		optionData;
-	}
-
-	getFinalOptions() {
-		return this.providedOptions;
-	}
-
-	getDefaultOptions() {
-		var defaultOptions = {};
-
-		for(var opt in this.optionData) {
-			defaultOptions[opt] = this.optionData[opt]['default'];
-		}
-
-		return defaultOptions;
-	}
-}
-
 /**
  * Track the relative position of an element as it scrolls by.
  */
@@ -160,41 +137,14 @@ class ScrollDetector {
 	 * @todo Track vertical and horizontal position at the same time, and let animations use both simultaneously
 	 */
 	constructor(options) {
-		var optionData = new ParallaxativeClassOptions(options, {
-			scrollTarget: {
-				'default': null,
-				'type': 'html-element'
-			},
-			scrollIsVertical: {
-				'default': true,
-				'type': 'boolean'
-			}
-		});
+		this.defaultOptions = {
+			scrollTarget: null,
+			scrollIsVertical: true
+		};
 
-		var defaultOptions = optionData.getDefaultOptions();
+		options = this.validateOptions(options);
 
-		// Syntax sugar for scrollTarget
-		if(options instanceof HTMLElement) { // Allow providing bare DOM node
-			options = { scrollTarget: options };
-		} else if(typeof options === 'string') { // Allow providing bare query selector
-			options = { scrollTarget: normalizeDOMElement(options) };
-		} else if(!(typeof options.scrollTarget === 'object' && options.scrollTarget instanceof HTMLElement)) {
-			if (typeof options.scrollTarget === 'undefined' || !!options.scrollTarget) {
-				throw new ParallaxativeException(this.constructor, 'scrollTargetEmpty');
-			} else if (typeof options.scrollTarget === 'string') { // Allow passing query selector string
-				options.scrollTarget = document.querySelector(options.scrollTarget);
-
-				if(!options.scrollTarget) {
-					throw new ParallaxativeException(this.constructor, 'scrollTargetQueryNull');
-				}
-			} else {
-				throw new ParallaxativeException(this.constructor, 'badScrollTarget');
-			}
-		}
-
-		options = Object.assign({}, defaultOptions, options);
-
-		Object.getOwnPropertyNames(defaultOptions).forEach(name => {
+		Object.getOwnPropertyNames(this.defaultOptions).forEach(name => {
 			this[name] = options[name];
 		});
 
@@ -213,6 +163,22 @@ class ScrollDetector {
 		this.rect = this.scrollTarget.getBoundingClientRect();
 		this.documentOffsets = {top: this.rect.top + this.constructor.getVerticalScroll(), left: this.rect.left + this.constructor.getHorizontalScroll() };
 		this.windowSizes = { width: window.innerWidth, height: window.innerHeight };
+	}
+
+	validateOptions(options) {
+		if(options instanceof HTMLElement || typeof options === 'string') { // Allow providing bare DOM node
+			options = { scrollTarget: options };
+		}
+
+		if(typeof options.scrollTarget === 'string') {
+			options.scrollTarget = normalizeDOMElement(options.scrollTarget);
+		}
+
+		if(!(options.scrollTarget instanceof HTMLElement)) {
+			throw new ParallaxativeException(this.constructor, 'badScrollTarget');
+		}
+
+		return Object.assign({}, this.defaultOptions, options);
 	}
 
 	/**
