@@ -1,12 +1,4 @@
 function validateOptions(options) {
-	if(typeof options.activeMediaQueryList !== 'undefined') {
-		if(typeof options.activeMediaQueryList === 'string' && options.activeMediaQueryList) {
-			options.activeMediaQueryList = window.matchMedia(options.activeMediaQueryList);
-		} else if (!(options.activeMediaQueryList instanceof MediaQueryList)) {
-			throw new ParallaxativeException(validateOptions, 'badActiveMediaQueryList');
-		}
-	}
-
 	if(typeof options.properties === 'string') {
 		options.properties = [ options.properties ];
 	}
@@ -21,6 +13,23 @@ function validateOptions(options) {
 	}
 
 	return options;
+}
+
+// eslint-disable-next-line no-unused-vars
+function arrayify(obj) {
+	return (obj instanceof Array || obj instanceof NodeList) ? obj : [ obj ];
+}
+
+function normalizeMediaQueryList(mql) {
+	if(mql instanceof MediaQueryList || mql === null) {
+		return mql;
+	}
+
+	if(typeof mql === 'string' && mql) {
+		return window.matchMedia(mql);
+	}
+
+	throw new ParallaxativeException(validateOptions, 'badActiveMediaQueryList');
 }
 
 function normalizeDOMElement(el) {
@@ -265,6 +274,34 @@ class ScrollDetector {
  */
 class ScrollTrigger {
 	constructor(options = {}) {
+		options = this.validateOptions(options);
+
+		this.defaultOptions = {
+			activateImmediately: true,
+			activeMediaQueryList: '(min-width: 720px)',
+			scrollDetector: null, // Handled above
+			triggerFunction: function(el) {
+				el.classList.remove('offscreen');
+			},
+			triggerPosition: 0.15,
+			triggerTarget: null, // Handled above
+			triggerOnDeactivate: true
+		};
+
+		Object.getOwnPropertyNames(this.defaultOptions).forEach(name => {
+			this[name] = options[name];
+		});
+
+		this.activeMediaQueryList.addListener(() => {
+			this.respond();
+		});
+
+		if(this.activateImmediately) {
+			this.respond();
+		}
+	}
+
+	validateOptions(options) {
 		var scrollDetectorIsEmpty = typeof options.scrollDetector === 'undefined' || !!options.scrollDetector;
 		var triggerTargetIsEmpty = typeof options.triggerTarget === 'undefined' || !!options.triggerTarget;
 
@@ -280,34 +317,11 @@ class ScrollTrigger {
 			options.triggerTarget = options.scrollDetector.scrollTarget;
 		}
 
+		options = Object.assign({}, this.defaultOptions, options);
 
-		var defaultOptions = {
-			activateImmediately: true,
-			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
-			scrollDetector: null, // Handled above
-			triggerFunction: function(el) {
-				el.classList.remove('offscreen');
-			},
-			triggerPosition: 0.15,
-			triggerTarget: null, // Handled above
-			triggerOnDeactivate: true
-		};
+		options.activeMediaQueryList = normalizeMediaQueryList(options.activeMediaQueryList);
 
-		options = validateOptions(options, this.constructor);
-
-		options = Object.assign({}, defaultOptions, options);
-
-		Object.getOwnPropertyNames(options).forEach(name => {
-			this[name] = options[name];
-		});
-
-		this.activeMediaQueryList.addListener(() => {
-			this.respond();
-		});
-
-		if(this.activateImmediately) {
-			this.respond();
-		}
+		return options;
 	}
 
 	init() {
@@ -471,7 +485,7 @@ class ScrollAnimation {
 		if(animateTargets instanceof HTMLElement) { // Allow passing bare DOM node
 			animateTargets = [animateTargets];
 		} else if(typeof animateTargets === 'string') { // Allow passing query selector string
-			animateTargets = [ document.querySelector(animateTargets) ];
+			animateTargets = [ document.querySelectorAll(animateTargets) ];
 		}
 
 		try {
@@ -486,7 +500,6 @@ class ScrollAnimation {
 				}
 			}
 		}
-
 
 		if(typeof options !== 'undefined') {
 			options = validateOptions(options, this.constructor);
