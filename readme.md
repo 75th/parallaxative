@@ -26,7 +26,7 @@ Give its constructor an HTMLElement, and its methods will give you a float repre
 
 - **0** means it's one pixel away from scrolling onto the bottom of the screen
 - **1** means it's just barely scrolled off the top of the screen
-- All other values are interpreted linearly
+- All other values are interpolated linearly
 
 A constructor option allows you to track horizontal instead of vertical scrolling, and all the classes below work (or can easily be made to work) with horizontal scrolling as well.
 
