@@ -485,7 +485,7 @@ class ScrollAnimation {
 		if(animateTargets instanceof HTMLElement) { // Allow passing bare DOM node
 			animateTargets = [animateTargets];
 		} else if(typeof animateTargets === 'string') { // Allow passing query selector string
-			animateTargets = [ document.querySelectorAll(animateTargets) ];
+			animateTargets = document.querySelectorAll(animateTargets);
 		}
 
 		try {
