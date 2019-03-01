@@ -2,7 +2,7 @@
 
 A vanilla JS library to help those who must implement parallax under duress. Contains several classes to help run code based on the viewport position of an HTML element.
 
-This seems to work decently in most circumstances, but the API is very ugly; it needs massive cleanup and documentation improvements. Use at your own risk.
+This seems to work decently in most circumstances, but the API is in the process of being cleaned up substantially; it needs massive cleanup and documentation improvements. Use at your own risk.
 
 Special thanks to [Barry T. Smith](https://twitter.com/thebarrytone) for the [excellent name](http://motherfuckingwebsite.com)
 
@@ -12,11 +12,17 @@ Special thanks to [Barry T. Smith](https://twitter.com/thebarrytone) for the [ex
 
 The classes are *kind of* documented in the module file; friendlier documentation here is on my TODO list.
 
-`/demo/demo.js` has very basic examples of how to use `ScrollAnimation` and `ParallaxAnimation`. Again, the API is super ugly; see the [issue queue](https://github.com/75th/parallaxative/issues) to get an idea of the improvements I want to make.
+`/demo/demo.js` has very basic examples of how to use `ScrollAnimation` and `ParallaxAnimation`.
+
+See the [issue queue](https://github.com/75th/parallaxative/issues) to get an idea of the improvements I want to make.
 
 ### Development and demo
 
-`npm install`, as always. Then `npm run build` to compile changes, or `npm run demo` to launch the demo page.
+~~`npm install`, as always. Then `npm run build` to compile changes, or `npm run demo` to launch the demo page.~~
+
+Bundling and demo preview are now handled by [CodeKit](https://codekitapp.com/) (version 3.8 or higher). Webpack and all other JavaScript-based build tools are abominations whose primary benefit is providing security vulnerabilities for GitHub to detect and pester you about.
+
+
 
 ## Included classes
 

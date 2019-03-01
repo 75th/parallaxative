@@ -14,9 +14,9 @@
 		"ft": 64,
 		"ma": 0,
 		"mi": 1,
-		"oA": 0,
+		"oA": 1,
 		"oAP": "/min/.eslintrc-min.js",
-		"oF": 0,
+		"oF": 1,
 		"sC": 1,
 		"tS": 0
 		},
@@ -24,17 +24,17 @@
 		"cB": 0,
 		"ft": 8192,
 		"hM": 0,
-		"oA": 0,
+		"oA": 1,
 		"oAP": "/.gitignore",
-		"oF": 0
+		"oF": 1
 		},
 	"/.npmignore": {
 		"cB": 0,
 		"ft": 8192,
 		"hM": 0,
-		"oA": 0,
+		"oA": 1,
 		"oAP": "/.npmignore",
-		"oF": 0
+		"oF": 1
 		},
 	"/demo/bgimg.jpg": {
 		"ft": 16384,
@@ -176,21 +176,15 @@
 		"eSQ": 1,
 		"ft": 4096,
 		"hM": 0,
-		"oA": 0,
+		"oA": 1,
 		"oAP": "/LICENSE.html",
-		"oF": 0,
+		"oF": 1,
 		"oFM": 0,
 		"oS": 0,
 		"pHT": 0,
 		"pME": 1,
 		"rFN": 0,
 		"uCM": 0
-		},
-	"/node_modules": {
-		"ft": 65536,
-		"oA": 2,
-		"oAP": "/build/node_modules",
-		"oF": 0
 		},
 	"/package.json": {
 		"ft": 524288,
@@ -209,9 +203,9 @@
 		"eSQ": 1,
 		"ft": 4096,
 		"hM": 0,
-		"oA": 0,
+		"oA": 1,
 		"oAP": "/readme.html",
-		"oF": 0,
+		"oF": 1,
 		"oFM": 0,
 		"oS": 0,
 		"pHT": 0,
