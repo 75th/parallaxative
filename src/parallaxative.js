@@ -461,10 +461,10 @@ class ScrollAnimation {
 	 *         {bool} activateImmediately: Whether to turn on the animation immediately upon construction.
 	 *             (Even if true, the animation will not activate if activeMediaQueryList.matches is false.)
 	 */
-	constructor(animateTargets, scrollDetector, options, defaultValueSets) {
+	constructor(animateTargets, scrollDetector, options, defaultValueSets = [ new ScrollAnimationValueSet() ]) {
 		var defaultOptions = {
 			properties: ['transform', 'msTransform'],
-			valueSets: defaultValueSets ? defaultValueSets : [ new ScrollAnimationValueSet() ],
+			valueSets: defaultValueSets,
 			valueSetSeparator: ' ',
 			removePropertiesOnReset: true,
 			activeMediaQueryList: window.matchMedia('(min-width: 720px)'),
@@ -477,7 +477,7 @@ class ScrollAnimation {
 		if(animateTargets instanceof HTMLElement) { // Allow passing bare DOM node
 			animateTargets = [animateTargets];
 		} else if(typeof animateTargets === 'string') { // Allow passing query selector string
-			animateTargets = document.querySelectorAll(animateTargets);
+			animateTargets = Array.from(document.querySelectorAll(animateTargets));
 		}
 
 		try {
@@ -513,9 +513,7 @@ class ScrollAnimation {
 			this.respond();
 		}
 
-		this.activeMediaQueryList.addListener(() => {
-			this.respond();
-		});
+		this.activeMediaQueryList.addListener(this.respond);
 	}
 
 	/**
@@ -728,8 +726,8 @@ class ParallaxAnimation extends ScrollAnimation {
 	 *     Configuration for one or more values to be used in the single CSS rule
 	 *     this object manages.
 	 */
-	constructor(animateTargets, scrollDetector, options) {
-		super(animateTargets, scrollDetector, options, [ new ParallaxAnimationValueSet() ]);
+	constructor(animateTargets, scrollDetector, options, valueSets = [ new ParallaxAnimationValueSet() ]) {
+		super(animateTargets, scrollDetector, options, valueSets);
 	}
 
 	/**
