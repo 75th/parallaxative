@@ -158,14 +158,8 @@ class ScrollDetector {
 		});
 
 		this.updateResizeProperties();
-
-		window.addEventListener('resize', () => {
-			this.updateResizeProperties();
-		});
-
-		window.addEventListener('load', () => {
-			this.updateResizeProperties();
-		});
+		window.addEventListener('resize', this.updateResizeProperties);
+		window.addEventListener('load', this.updateResizeProperties);
 	}
 
 	updateResizeProperties() {
@@ -292,9 +286,7 @@ class ScrollTrigger {
 			this[name] = options[name];
 		});
 
-		this.activeMediaQueryList.addListener(() => {
-			this.respond();
-		});
+		this.activeMediaQueryList.addListener(this.respond);
 
 		if(this.activateImmediately) {
 			this.respond();
