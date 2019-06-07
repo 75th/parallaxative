@@ -20,6 +20,13 @@ function arrayify(obj) {
 	return (obj instanceof Array || obj instanceof NodeList) ? obj : [ obj ];
 }
 
+/**
+ * Handle strings provided where a MediaQueryList is expected
+ *
+ * @param {[type]} mql
+ *
+ * @return {[type]}
+ */
 function normalizeMediaQueryList(mql) {
 	if(mql instanceof MediaQueryList || mql === null) {
 		return mql;
@@ -62,7 +69,7 @@ function normalizeScrollDetector(scrollDetector, defaultScrollTarget) {
 			if(optionsAreForScrollDetector(scrollDetector)) {
 				scrollDetector = new ScrollDetector(defaultScrollTarget, scrollDetector);
 			} else {
-				throw new ParallaxativeException(null, 'optionsNotForScrollDetector', {}, 'none');
+				throw new ParallaxativeException(null, 'optionsNotForScrollDetector', {}, console.warn || function(){});
 			}
 		}
 	}
@@ -74,20 +81,23 @@ function optionsAreForScrollDetector(options) {
 	return typeof options.scrollIsVertical !== 'undefined' || typeof options.scrollTarget !== 'undefined';
 }
 
+
+/**
+ * Class for all errors in other Parallaxative classes.
+ */
 class ParallaxativeException {
-	constructor(throwingFunction, type = 'generic', data = {}, level = 'error') {
+	/**
+	 * Creates a ParallaxativeException.
+	 *
+	 * @param {function} throwingFunction - The class where the error occurred.
+	 * @param {string} [type='generic'] - Error code associated with plain-English help text.
+	 * @param {Object} [data={}] - Arbitrary data provided with the error.
+	 * @param {string} [log=console.error || function(){}] - Function with which to log the error.
+	 */
+	constructor(throwingFunction, type = 'generic', data = {}, log = console.error || function(){}) {
 		this.throwingFunction = throwingFunction;
 		this.type = type;
 		this.data = data;
-
-		var log;
-
-		if(level === 'none') {
-			log = () => {};
-		} else {
-			// eslint-disable-next-line no-console
-			log = console[level];
-		}
 
 		switch (true) {
 			case (throwingFunction === ScrollDetector && type === 'badScrollTarget'):
@@ -123,25 +133,32 @@ class ParallaxativeException {
 			case (type === 'optionsNotForScrollDetector'):
 				log('Options in a scrollDetector parameter were not for a scrollDetector and were not detected to be for something else.');
 				break;
+			case (type === 'unhandledExceptionType'):
+				log('The previous error was not handled specifically (with plain English error text). This is the Parallaxative developer’s fault, and you should yell at him at https://github.com/75th/parallaxative/issues');
+				break;
 			default:
 				log('Error in Parallaxative class %o of type %o with data %o.', throwingFunction, type, data);
-				break;
+				throw new ParallaxativeException(this.constructor, 'unhandledExceptionType');
 		}
 	}
 }
 
 /**
- * Track the relative position of an element as it scrolls by.
+ * Options for a ScrollDetector.
+ * @typedef {Object|HTMLElement|string} ScrollDetectorOptions - Either an object with the below properties, or an HTMLElement or a querySelector string for the scrollTarget property.
+ * @property {HTMLElement|string} scrollTarget - Either the element whose position to track, or a querySelector string pointing to it.
+ * @property {boolean} [scrollIsVertical=true] - Whether to track vertical scrolling instead of horizontal scrolling.
+ */
+
+/**
+ * Tracks the relative position of an element as it scrolls by.
  */
 class ScrollDetector {
 	/**
-	 * Constructor.
+	 * Create a ScrollDetector.
 	 *
-	 * @param {HTMLElement} scrollTarget
-	 *     Element whose position to track
-	 * @param {object} options
-	 *     Other options that may be omitted to use default values
-	 *         {bool} scrollIsVertical: Whether to track horizontal or vertical scrolling position.
+	 * @param {HTMLElement} scrollTarget - Element whose position to track
+	 * @param {ScrollDetectorOptions} options
 	 *
 	 * @todo Track vertical and horizontal position at the same time, and let animations use both simultaneously
 	 */
@@ -162,12 +179,22 @@ class ScrollDetector {
 		window.addEventListener('load', this.updateResizeProperties);
 	}
 
+	/**
+	 * Event handler to update internal state when the window size changes.
+	 */
 	updateResizeProperties() {
 		this.rect = this.scrollTarget.getBoundingClientRect();
 		this.documentOffsets = {top: this.rect.top + this.constructor.getVerticalScroll(), left: this.rect.left + this.constructor.getHorizontalScroll() };
 		this.windowSizes = { width: window.innerWidth, height: window.innerHeight };
 	}
 
+	/**
+	 * [validateOptions description]
+	 *
+	 * @param {[type]} options
+	 *
+	 * @return {[type]}
+	 */
 	validateOptions(options) {
 		if(options instanceof HTMLElement || typeof options === 'string') { // Allow providing bare DOM node
 			options = { scrollTarget: options };
